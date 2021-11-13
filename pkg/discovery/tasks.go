@@ -1,4 +1,4 @@
-package composition
+package discovery
 
 type Task string
 
