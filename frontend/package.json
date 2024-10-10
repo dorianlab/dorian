@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@headlessui/react": "^0.0.0-insiders.aff438e",
+    "@heroicons/react": "^2.1.1",
+    "axios": "^1.6.5",
+    "clsx": "^2.1.0",
+    "fs": "^0.0.1-security",
+    "next": "14.0.4",
+    "next-auth": "^4.24.6",
+    "react": "^18",
+    "react-dom": "^18",
+    "yaml": "^2.4.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

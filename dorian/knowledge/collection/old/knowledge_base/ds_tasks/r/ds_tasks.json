@@ -1,0 +1,20 @@
+{
+  "randomForest": "random-forest",
+  "getTree": "tree-ensemble-tree",
+  "rpart": "cart",
+  "cubist": "cubist",
+  "predict": "predict",
+  "lm": "least-squares",
+  "glm": "glm-deviance",
+  "kmeans": "k-means",
+  "vif": "vif-regression",
+  "dummyVars": "dummy-coding",
+  "character": "string",
+  "logical": "boolean",
+  "complex": "complex",
+  "integer": "integer",
+  "formula": "expression",
+  "data.frame": "table",
+  "numeric": "real",
+  "matrix": "matrix"
+}

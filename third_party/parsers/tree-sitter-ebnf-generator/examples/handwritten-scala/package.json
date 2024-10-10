@@ -1,0 +1,30 @@
+{
+  "name": "tree-sitter-scala",
+  "version": "0.1.0",
+  "description": "Scala grammar for tree-sitter",
+  "main": "bindings/node",
+  "keywords": [
+    "parser",
+    "scala"
+  ],
+  "author": "Ethan Atkins",
+  "license": "MIT",
+  "dependencies": {
+    "nan": "^2.14.1"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "0.18.3"
+  },
+  "scripts": {
+    "build": "tree-sitter generate && node-gyp build",
+    "test": "tree-sitter test"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.scala",
+      "file-types": [
+        "scala"
+      ]
+    }
+  ]
+}

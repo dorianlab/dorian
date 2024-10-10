@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "dorian"
+version = "0.1.0"
+description = ""
+authors = ["Sergey Redyuk <sergred@gmail.com>"]
+license = "BSD-3-Clause license"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11,<3.12"
+mpdict = {git = "https://github.com/gatopeich/mpdict.git"}
+fastapi = {extras = ["all"], version = "^0.108.0"}
+dask = {extras = ["distributed"], version = "^2024.4.1"}
+asyncio = "^3.4.3"
+aiofiles = "^23.2.1"
+pytz = "^2023.3.post1"
+pandas = "^2.1.4"
+pymongo = {extras = ["srv"], version = "^4.6.1"}
+sqlalchemy = "^2.0.25"
+redis = "^5.0.2"
+yacman = "^0.9.3"
+aenum = "^3.1.15"
+scikit-learn = "^1.4.2"
+pendulum = "^3.0.0"
+scrapy = "^2.11.1"
+scrapy-splash = "^0.9.0"
+tree-sitter = "0.21.3"
+classes = "^0.4.1"
+tree-sitter-python = "^0.21.0"
+aioredis = "^2.0.1"
+dynaconf = "^3.2.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

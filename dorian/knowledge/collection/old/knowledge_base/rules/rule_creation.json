@@ -1,0 +1,40 @@
+{
+  "name": "rm_attr_into_call",
+  "description": "remove attribute connected to call",
+  "rule_type": "syntactic",
+  "by_user": false,
+  "language": "python",
+  "priority": 50,
+  "pattern":{
+    "nodes":[
+      {
+        "node_id": 1
+      },
+      {
+        "node_id": 2,
+        "type": "attribute"
+      },
+      {
+        "node_id": 3,
+        "type": "call"
+      }
+    ],
+    "edges":[
+      {
+        "parent_node_id":1,
+        "child_node_id":2
+      },
+      {
+        "parent_node_id":1,
+        "child_node_id":3
+      }
+    ]
+  },
+  "transformations":{
+    "remove_nodes":[
+        {
+          "node_id": 2
+        }
+      ]
+  }
+}
