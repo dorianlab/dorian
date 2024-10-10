@@ -456,3 +456,4 @@ dist
 dorian/knowledge/collection/data/
 
 *.db
+poetry.lock
