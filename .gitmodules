@@ -1,0 +1,6 @@
+[submodule "third_party/auto-sklearn"]
+	path = third_party/auto-sklearn
+	url = https://github.com/automl/auto-sklearn
+[submodule "third_party/MLPrimitives"]
+	path = third_party/MLPrimitives
+	url = https://github.com/MLBazaar/MLPrimitives
