@@ -457,3 +457,4 @@ dorian/knowledge/collection/data/
 
 *.db
 poetry.lock
+config.yaml
