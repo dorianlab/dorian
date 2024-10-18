@@ -15,7 +15,11 @@ e.g., `<python version>` is 3.11.9.
 
 For missing packages, use `poetry add <package name>` (see [poetry docs](https://python-poetry.org/)).
 
-To run the backend, use `poetry run uvicorn main:app --reload`
+To run the backend, use 
+```
+poetry run uvicorn main:app --reload
+```
+
 To run the frontend, use 
 
 ```bash
