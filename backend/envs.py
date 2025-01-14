@@ -5,6 +5,9 @@ import redis
 
 worker_client = worker_client
 config = YAMLConfigManager.from_yaml_file("config.yaml")
+_env = config['type']
+config = config[_env]
+
 redis = redis.Redis(host=config['redis']['host'], port=config['redis']['port'],
                     username="default", # use your Redis user. More info https://redis.io/docs/management/security/acl/
                     password=config['redis']['api'],
