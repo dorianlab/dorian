@@ -1,0 +1,1061 @@
+# =============================================================================
+# Dorian — Full-Stack Container Compose (Podman / Docker)
+# =============================================================================
+#
+# Usage (podman):
+#   podman-compose up --build       # first run (build + provision + seed + launch)
+#   podman-compose up               # subsequent runs (data persists in volumes)
+#   podman-compose down             # stop (keep data)
+#   podman-compose down -v          # stop + wipe all data
+#   podman-compose logs -f backend  # tail a specific service
+#
+# Usage (docker):
+#   docker compose up --build       # identical behaviour
+#
+# Optional deps (set in .env or inline):
+#   UV_EXTRAS="guardrails flaml model-tracing" podman-compose up --build  # all extras
+#   UV_EXTRAS="guardrails flaml" podman-compose up --build               # default
+#   UV_EXTRAS=guardrails podman-compose up --build                      # core + guardrails
+#   UV_EXTRAS= podman-compose up --build                                # lean core-only image
+#
+# Startup order:
+#   Phase 1: redis, postgres  (databases, parallel)
+#   Phase 2: bootstrap                      (provision + seed all DBs in one container)
+#   Phase 4: backend, gateway               (API servers)
+#   Phase 5: frontend                       (Next.js)
+#
+# Resource budget — total across the stack ≤ 80% of host capacity:
+#
+#   Service         cpus   mem    notes
+#   ──────────────  ─────  ─────  ────────────────────────────────────
+#   redis              4    8 GB
+#   postgres          16   32 GB
+#   gateway            8    8 GB
+#   frontend           4    8 GB
+#   backend           32   64 GB  FastAPI + Dask scheduler in-proc
+#   exec-worker       96  256 GB  pandas / sklearn / KB job execution
+#   rl-trainer (rl)   64  128 GB  profile=rl
+#   flaml-seeder      64  128 GB  profile=flaml
+#   ──────────────  ─────  ─────
+#   sum              288  632 GB  (75 % of 384 cores; 41 % of 1.5 TiB)
+#
+# Per-service ``cpus:`` is the hard ceiling for that container. The
+# ``OMP_NUM_THREADS`` / ``OPENBLAS_NUM_THREADS`` / ``MKL_NUM_THREADS``
+# env vars are an in-process backstop so an unbounded sklearn/joblib
+# fan-out can't exceed the cgroup ceiling. They were set to 8 each
+# (combine with ``DORIAN_EXEC_CONCURRENCY`` / FLAML's internal
+# parallelism for total thread count).
+#
+# Aggregate cap is enforced by the SUM of individual ``cpus:`` (288)
+# being ≤ 80 % of host (307 cores on a 384-core box). On hosts with
+# ``Delegate=cpu`` on user.slice + a parent cgroup quota, the limit
+# could be expressed at the slice level and individual ceilings
+# raised. We do not assume that delegation here.
+#
+# =============================================================================
+
+services:
+
+  # ==========================================================================
+  # Phase 1 — Databases
+  # ==========================================================================
+
+  # The document store lives in
+  # per-collection Postgres JSONB tables (``doc_<collection>``), managed by
+  # backend/db/pg_docstore.py.
+  # All document-store collections (pipelines, datasets, sessions, rewrites, …)
+  # are stored there.
+
+  redis:
+    build:
+      context: ./backend/infra/dbs/redis
+      dockerfile: Dockerfile
+    container_name: dorian-redis
+    # Single source of truth for the redis port: ``DORIAN_REDIS_PORT``
+    # in ``.env``. Bump it when you hit EADDRINUSE on a shared host
+    # (some deployment hosts have 6379 + 6380 already taken by other stacks);
+    # everything else — the container's listen port, the host port
+    # mapping, the healthcheck probe, and ``DORIAN_REDIS_URL`` baked
+    # into every consumer — substitutes from this one variable.
+    #
+    # Plain ``${DORIAN_REDIS_PORT}`` (not ``:?msg with spaces``) because
+    # podman-compose mangles the ``:?`` interpolation when the error
+    # message contains spaces and ships the literal compose syntax to
+    # redis-server, which then fails with "wrong number of arguments".
+    # ``scripts/up.sh`` defaults the var right after sourcing .env,
+    # so it's always set by the time compose parses this file.
+    command: redis-server /usr/local/etc/redis/redis.conf --port ${DORIAN_REDIS_PORT:-6379}
+    volumes:
+      - redis_data:/data
+      # The dorian-user password lives in the ACL file. In prod, the deploy
+      # script regenerates ${CONFIG_DIR}/redis-init.acl from the env var and
+      # bind-mounts it over the image-baked copy via docker-compose.prod.yml.
+      # Local dev uses the image-baked file as-is.
+    environment:
+      # Forward DORIAN_REDIS_PORT into the container so the healthcheck
+      # CMD-SHELL form can reference it (compose substitutes ``${...}``
+      # in array CMD form against the *host* env at file-parse time;
+      # CMD-SHELL evaluates ``$$VAR`` against the container env at
+      # probe time, which is what we want when the port can change
+      # between deploys).
+      DORIAN_REDIS_PORT: ${DORIAN_REDIS_PORT:-6379}
+    ports:
+      - "${DORIAN_REDIS_PORT:-6379}:${DORIAN_REDIS_PORT:-6379}"
+    networks:
+      - dorian
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p $$DORIAN_REDIS_PORT ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    cpus: 4
+    # 64 GiB cap — host has 1.5 TiB RAM, so a generous allocation
+    # is fine and avoids the OOM-restart loop the 8 GiB cap caused
+    # under accumulated cache + intermediates + interaction stream.
+    # When the RDB grew past 7.4 GiB, every restart re-loaded into
+    # 8 GiB and got killed during the first AOF rewrite. 64 GiB
+    # gives 8× headroom over the working set.
+    mem_limit: 64g
+
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: dorian-postgres
+    cpus: 16
+    mem_limit: 32g
+    environment:
+      POSTGRES_USER: dorian
+      # Applied on first init only; subsequent changes require ALTER USER or
+      # wiping the data volume. UUID fallback is a dev-only convenience.
+      POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      POSTGRES_DB: dorian
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dorian
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dorian -d dorian"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ==========================================================================
+  # Backend image — built once, reused by init/seed/backend services
+  # ==========================================================================
+
+  backend-image:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: dorian-backend:local
+    # Install/sync dependencies into the shared venv volume.
+    # Skips entirely if the lockfile hasn't changed since the last sync
+    # (checksum stored in the venv volume).  First run or lockfile change
+    # triggers a full `uv sync`; subsequent starts are instant.
+    command:
+      - sh
+      - -c
+      - |
+        LOCK_HASH=$$(md5sum /app/uv.lock | cut -d' ' -f1)
+        STAMP=/app/.venv/.lock_hash
+        VENV_OK=0
+        if [ -f "$$STAMP" ] && [ "$$(cat $$STAMP)" = "$$LOCK_HASH" ] && [ -f /app/.venv/bin/python ]; then
+          echo "venv up-to-date (lockfile unchanged) — skipping uv sync"
+          VENV_OK=1
+        fi
+        if [ "$$VENV_OK" = "0" ]; then
+          echo "Syncing dependencies (lockfile changed or venv missing)..."
+          # If the venv volume was wiped, /app/.venv exists (mount point) but
+          # has no bin/python. uv sees it as a broken venv and refuses to sync.
+          # Re-create it so uv sync can proceed.
+          if [ ! -f /app/.venv/bin/python ]; then
+            echo "Creating fresh venv..."
+            uv venv /app/.venv --clear
+          fi
+          EXTRA_FLAGS=""
+          # ``flaml`` is in the default set because flaml-seeder is now
+          # part of the always-on stack on the deployment host; without it the
+          # seeder fails on every fit with ModuleNotFoundError.
+          for e in $${UV_EXTRAS-guardrails flaml}; do
+            EXTRA_FLAGS="$$EXTRA_FLAGS --extra $$e"
+          done
+          uv sync --frozen --no-dev --no-install-project $$EXTRA_FLAGS \
+            && echo "$$LOCK_HASH" > "$$STAMP"
+        fi
+        # ------------------------------------------------------------------
+        # Build dorian_native (PyO3 extension) into the venv.
+        #
+        # Stamped on the workspace Cargo.lock so rebuilds fire only when
+        # Rust deps or source changed. The compiled .so lands in
+        # /app/.venv/lib/python3.13/site-packages via ``maturin develop``.
+        # First build is slow (~5-10 min cold); incremental recompiles
+        # take seconds thanks to the cargo_target volume mount.
+        # ------------------------------------------------------------------
+        NATIVE_LOCK=/app/engine/Cargo.lock
+        NATIVE_STAMP=/app/.venv/.native_hash
+        # Verify the *production* exports are present, not just that a
+        # dorian_native stub imports. ``validate_pipeline`` is the
+        # signal for "engine/native build" vs the older "native/"
+        # skeleton; without it the Rust validator silently no-ops and
+        # we'd regress to the Python fallback.
+        NATIVE_PROBE='import dorian_native, sys; sys.exit(0 if hasattr(dorian_native, "validate_pipeline") else 1)'
+        # Stamp on the rust SOURCE tree, not just Cargo.lock — a code
+        # edit (e.g. fixing the kb-builder __init__ filter on
+        # 2026-04-28) doesn't change the lockfile, so a lock-only
+        # stamp short-circuited every redeploy and shipped a stale
+        # ``.so`` from the cache. Hash all Cargo.toml + .rs under
+        # /app/engine, sorted, so the stamp captures source-level
+        # changes and remains stable across no-op redeploys.
+        if [ -f "$$NATIVE_LOCK" ]; then
+          NATIVE_HASH=$$(
+            { md5sum $$NATIVE_LOCK; \
+              find /app/engine -type f \( -name '*.rs' -o -name 'Cargo.toml' \) \
+                   -exec md5sum {} \; | sort; \
+            } | md5sum | cut -d' ' -f1
+          )
+        else
+          NATIVE_HASH="nolockfile"
+        fi
+        NATIVE_OK=0
+        if [ -f "$$NATIVE_STAMP" ] && [ "$$(cat $$NATIVE_STAMP)" = "$$NATIVE_HASH" ]; then
+          if /app/.venv/bin/python -c "$$NATIVE_PROBE" 2>/dev/null; then
+            echo "dorian_native up-to-date (Cargo.lock unchanged, module importable)"
+            NATIVE_OK=1
+          fi
+        fi
+        if [ "$$NATIVE_OK" = "0" ]; then
+          echo "Building dorian_native (maturin build + wheel install) ..."
+          # ``maturin develop`` does an editable install into the
+          # current container's /app — that doesn't persist across
+          # containers because /app is image layer, not volume. Build
+          # a wheel and ``uv pip install`` it into the backend_venv
+          # volume instead, so every downstream service (backend,
+          # rl-trainer, exec-worker, bootstrap) sees the same .so.
+          VIRTUAL_ENV=/app/.venv uv pip install --quiet 'maturin>=1.7,<2' && \
+          rm -rf /tmp/dorian-native-wheel && \
+          mkdir -p /tmp/dorian-native-wheel && \
+          VIRTUAL_ENV=/app/.venv /app/.venv/bin/maturin build --release \
+            --manifest-path /app/engine/native/Cargo.toml \
+            --out /tmp/dorian-native-wheel && \
+          VIRTUAL_ENV=/app/.venv uv pip install --reinstall \
+            /tmp/dorian-native-wheel/*.whl && \
+          echo "$$NATIVE_HASH" > "$$NATIVE_STAMP" && \
+          echo "dorian_native built + installed into venv." || \
+          { echo "ERROR: dorian_native build failed; bootstrap and KB snapshot generation require it."; exit 1; }
+        fi
+        # ------------------------------------------------------------------
+        # Build standalone Rust engine binaries: dorian-engines (xproduct +
+        # automl supervisor) and dorian-backend (event-handler subscriber).
+        # Both binaries live in the shared cargo_target volume so the
+        # engines and rust-backend services can exec them directly.
+        #
+        # Uses a SEPARATE stamp file from dorian_native. The previous shared
+        # NATIVE_STAMP scheme silently shipped stale binaries: when sources
+        # changed, dorian_native rebuilt + rewrote the stamp to the new hash,
+        # then the binary check found "stamp matches new hash + binary exists"
+        # → skip. The skipped binary was the OLD one. Separate stamps so each
+        # artefact's freshness is tracked independently.
+        # ------------------------------------------------------------------
+        ENGINES_BIN=/cargo-target/release/dorian-engines
+        BACKEND_BIN=/cargo-target/release/dorian-backend
+        BINS_STAMP=/cargo-target/.dorian_engine_bins_hash
+        BINS_OK=0
+        if [ -f "$$BINS_STAMP" ] && [ "$$(cat $$BINS_STAMP)" = "$$NATIVE_HASH" ] && \
+           [ -f "$$ENGINES_BIN" ] && [ -f "$$BACKEND_BIN" ]; then
+          echo "Rust engine binaries up-to-date — skipping cargo build"
+          BINS_OK=1
+        fi
+        if [ "$$BINS_OK" = "0" ]; then
+          echo "Building Rust engine binaries (dorian-engines + dorian-backend)..."
+          if cargo build --release \
+              --manifest-path /app/engine/Cargo.toml \
+              -p dorian-engines -p backend; then
+            echo "$$NATIVE_HASH" > "$$BINS_STAMP"
+            echo "Rust engine binaries built."
+          else
+            echo "WARN: Rust engine binary build failed — engines/rust-backend will not start."
+          fi
+        fi
+    environment:
+      UV_PYTHON_PREFERENCE: only-system
+      UV_LINK_MODE: copy
+      UV_HTTP_TIMEOUT: "300"
+      # Redirect cargo's target directory into a named volume so
+      # rebuilds of dorian_native don't have to re-download + recompile
+      # the workspace on every container recreation.
+      CARGO_TARGET_DIR: /cargo-target
+    working_dir: /app
+    volumes:
+      - backend_venv:/app/.venv
+      - uv_cache:/root/.cache/uv
+      - cargo_target:/cargo-target
+    networks:
+      - dorian
+
+  # ==========================================================================
+  # Phase 2 — Bootstrap: provision + seed all DBs (one container)
+  #
+  # Replaces the former db-init + seed-pipelines + seed-kb + seed-rewrites
+  # quartet with a single Python process running all four steps
+  # sequentially. Same Python interpreter, same venv — no reason to
+  # launch four containers. Individual steps can be skipped via env:
+  #   DORIAN_BOOTSTRAP_PROVISION / _SEED_TRIAL_CONFIGS / _SEED_KB / _SEED_REWRITES
+  # ==========================================================================
+
+  bootstrap:
+    image: dorian-backend:local
+    container_name: dorian-bootstrap
+    command: ["uv", "run", "--no-sync", "python", "-m", "backend.infra.bootstrap"]
+    environment:
+      DORIAN_ENV: docker
+      PYTHONUNBUFFERED: "1"
+      # FORCE_SEED is set inside bootstrap.py for the KB step; keep it
+      # at the container level too for any tooling that reads it.
+      FORCE_SEED: "1"
+      # v1 trial-config seed produced 500 pre-computed auto-sklearn
+      # pipelines in the expdb ``pipelines`` collection. v2 (rl-trainer)
+      # generates pipelines from scratch and commits them directly to the
+      # leaderboard. Seed is ON by default because we cannot serve the
+      # welcome-screen "zero pipelines" state while v2 warms up —
+      # front-loading 500 entries gives the user immediate suggestions.
+      # The bootstrap step skips itself idempotently when ``pipelines``
+      # already has any documents (v1 or v2), so re-deploys don't stomp
+      # on v2 commits.
+      DORIAN_BOOTSTRAP_SEED_TRIAL_CONFIGS: "${DORIAN_BOOTSTRAP_SEED_TRIAL_CONFIGS:-1}"
+      # DB credentials — env vars take precedence over config.yaml so the
+      # bootstrap container always uses the same password as the running
+      # postgres/redis containers regardless of what's baked in config.yaml.
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PASSWORD: "${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PORT: "${DORIAN_REDIS_PORT:-6379}"
+    working_dir: /app
+    volumes:
+      - backend_venv:/app/.venv
+      # Bootstrap writes the KB snapshot here. Downstream services mount the
+      # same volume read-only, so docker compose up and manual deploy both
+      # publish one shared snapshot instead of a container-local file.
+      - kb_snapshot:/app/volumes
+    depends_on:
+      backend-image:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - dorian
+    restart: "no"
+
+  # ==========================================================================
+  # Phase 3 — Execution engine (Python compute workers)
+  #
+  # Owns every data / pipeline workload (pandas, numpy, sklearn, KB
+  # queries, anything GIL-heavy). Consumes jobs from the ``exec:jobs``
+  # Redis stream, runs the Python implementation, emits completion
+  # events on the regular event bus.
+  #
+  # Split from the FastAPI ``backend`` service so CPU-bound work never
+  # contends with user-facing request handling for a single GIL. Scale
+  # by running multiple replicas of THIS service; the FastAPI container
+  # stays a singleton (stateful in-process caches, WS sessions).
+  # ==========================================================================
+
+  exec-worker:
+    image: dorian-backend:local
+    container_name: dorian-exec-worker
+    command: ["uv", "run", "--no-sync", "python", "-m", "dorian.exec.worker"]
+    # Largest individual budget — main compute path (pandas / sklearn
+    # / KB job execution). Aggregate budget bounds collective burst.
+    cpus: 96
+    mem_limit: 256g
+    environment:
+      DORIAN_ENV: docker
+      PYTHONUNBUFFERED: "1"
+      DORIAN_EXEC_CONCURRENCY: "${DORIAN_EXEC_CONCURRENCY:-4}"
+      OMP_NUM_THREADS: "8"
+      OPENBLAS_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+      NUMEXPR_NUM_THREADS: "8"
+      # Rust expand_* port soak flags (#72). Mirror the backend
+      # service's defaults so all three pipeline-runners (backend,
+      # exec-worker, rl-trainer) take the same code path.
+      DORIAN_USE_RUST_EXPAND_DATASET: "${DORIAN_USE_RUST_EXPAND_DATASET:-1}"
+      DORIAN_USE_RUST_EXPAND_PRINTOUT: "${DORIAN_USE_RUST_EXPAND_PRINTOUT:-1}"
+      DORIAN_USE_RUST_RUNNER: "${DORIAN_USE_RUST_RUNNER:-1}"
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PASSWORD: "${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PORT: "${DORIAN_REDIS_PORT:-6379}"
+    working_dir: /app
+    volumes:
+      - backend_venv:/app/.venv
+      - app_data:/app/data:ro
+      # Exec workers read dataset CSVs from /app/data (same as the
+      # FastAPI backend writes them). Read-only here — workers must
+      # never mutate user uploads.
+    depends_on:
+      bootstrap:
+        condition: service_started
+    networks:
+      - dorian
+    restart: on-failure:5
+
+  # ==========================================================================
+  # RL trainer — Tier-C/D end-to-end demo service.
+  #
+  # Runs the Tier-C demo path: Gymnasium-
+  # style env over Dorian pipeline objects, the 4+1 action space, a
+  # rollout loop against CC-18 datasets via the existing Dask
+  # executor. Submits through the rl:jobs stream isolation contract
+  # (rl/jobs/isolation.py) so heavy rollouts don't starve user-
+  # facing exec:jobs traffic.
+  #
+  # Disabled by default (profile="rl"). Enable with:
+  #   docker compose --profile rl up rl-trainer
+  # ==========================================================================
+
+  rl-trainer:
+    image: dorian-backend:local
+    container_name: dorian-rl-trainer
+    # Was profile-gated; ungated alongside flaml-seeder so the RL
+    # rollout loop is part of the default service set in the deployment environment
+    # (the research box). Resource budget is bounded by ``cpus: 64``.
+    # Bounded PID cap — `restart: on-failure:3` kicks in if we hit it,
+    # which is the desired behaviour: a leak past a few hundred PIDs
+    # is a bug, not a burst. Sized above the legitimate peak (dask
+    # thread pool × EXEC_CONCURRENCY + runner overhead) with generous
+    # headroom.
+    pids_limit: 512
+    cpus: 64
+    mem_limit: 128g
+    command: ["uv", "run", "--no-sync", "python", "-m", "rl.train.main"]
+    environment:
+      OMP_NUM_THREADS: "8"
+      OPENBLAS_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+      NUMEXPR_NUM_THREADS: "8"
+      DORIAN_ENV: docker
+      PYTHONUNBUFFERED: "1"
+      # Rust expand_* port soak flags (#72) — same defaults as the
+      # backend / exec-worker services.
+      DORIAN_USE_RUST_EXPAND_DATASET: "${DORIAN_USE_RUST_EXPAND_DATASET:-1}"
+      DORIAN_USE_RUST_EXPAND_PRINTOUT: "${DORIAN_USE_RUST_EXPAND_PRINTOUT:-1}"
+      # Rust pipeline runner — eliminates the 3.5s GIL stalls the
+      # trainer was hitting on 2026-04-27 (Dask threaded scheduler
+      # holding the GIL during topology walks).
+      DORIAN_USE_RUST_RUNNER: "${DORIAN_USE_RUST_RUNNER:-1}"
+      # Policy + rollout config; see rl/train/config.py for the
+      # full list of DORIAN_RL_* env vars.
+      DORIAN_RL_DATASETS: "${DORIAN_RL_DATASETS:-credit-g,kr-vs-kp,mfeat-fourier}"
+      DORIAN_RL_POLICY: "${DORIAN_RL_POLICY:-hybrid}"
+      DORIAN_RL_EPISODES: "${DORIAN_RL_EPISODES:-100}"
+      # Continuous mode: the trainer reruns ``train(cfg)`` batches
+      # back-to-back rather than exiting after N episodes. Replaces
+      # the v1 GenerationScheduler which always ran in-background.
+      DORIAN_RL_CONTINUOUS: "${DORIAN_RL_CONTINUOUS:-1}"
+      DORIAN_RL_MAX_STEPS: "${DORIAN_RL_MAX_STEPS:-60}"
+      DORIAN_RL_SEED: "${DORIAN_RL_SEED:-42}"
+      DORIAN_RL_COMMIT: "${DORIAN_RL_COMMIT:-true}"
+      DORIAN_RL_CANONICAL_SUBST: "${DORIAN_RL_CANONICAL_SUBST:-false}"
+      DORIAN_RL_AUTO_SEED: "${DORIAN_RL_AUTO_SEED:-true}"
+      DORIAN_RL_LOG_EVERY: "${DORIAN_RL_LOG_EVERY:-5}"
+      # RL isolation (rl/jobs/isolation.py): separate stream +
+      # group + backpressure thresholds. Defaults ensure RL never
+      # starves user-facing pipelines.
+      DORIAN_RL_JOBS_STREAM: "${DORIAN_RL_JOBS_STREAM:-rl:jobs}"
+      DORIAN_RL_EXEC_GROUP: "${DORIAN_RL_EXEC_GROUP:-exec-rl}"
+      DORIAN_RL_BACKPRESSURE_USER_QUEUE: "${DORIAN_RL_BACKPRESSURE_USER_QUEUE:-256}"
+      # Learned policy state path. Persisted across trainer restarts so
+      # cold-start pays the warm-up cost only once, not every deploy.
+      # See ``rl.policy.persistence.save_policy`` for the file format.
+      DORIAN_RL_POLICY_STATE_PATH: "${DORIAN_RL_POLICY_STATE_PATH:-/app/volumes/rl_policy/state.pickle}"
+      # Cold-start exploration schedule. Set ``EPSILON_START`` > 0.1
+      # to activate the decay; default collapses to the fixed
+      # ``HYBRID_EPSILON`` = 0.1. Empirically, starting above 0.1
+      # underperforms the fixed-0.1 baseline by ~50% on the first
+      # 700 episodes: the increased Hedge fraction bypasses the
+      # dataset-conditioned MemoryPolicy warm-start priors that
+      # were doing the useful cold-start work. Leaving the env
+      # hook so ablations can re-test with different schedules
+      # (e.g. epsilon start = 0.15 over 200 episodes).
+      DORIAN_RL_EPSILON_START: "${DORIAN_RL_EPSILON_START:-0.1}"
+      DORIAN_RL_EPSILON_DECAY_EPISODES: "${DORIAN_RL_EPSILON_DECAY_EPISODES:-1000}"
+      # Warm-start strength multiplier. Default 1.0 matches the
+      # config-file default. 2.0 was tried in combination with the
+      # epsilon schedule above but empirically drove valid-pipeline
+      # rate to 0 over 700 episodes — the doubled hedge-weight
+      # credits narrowed the effective action distribution too much
+      # around the warm-started region, preventing the organic
+      # exploration the epsilon schedule was meant to encourage.
+      # Leaving the env hook so an ablation can still try it;
+      # default back to 1.0.
+      DORIAN_RL_WARM_START_STRENGTH: "${DORIAN_RL_WARM_START_STRENGTH:-1.0}"
+      # KB snapshot path inside the trainer container. Points at the
+      # shared ``kb_snapshot`` volume mounted below — the backend
+      # writes the snapshot via ``scripts/export_kb_snapshot.py`` and
+      # everyone downstream reads from this path. Without it
+      # ``get_metrics_for_task`` returns an empty list and the
+      # trainer falls back to ``_FALLBACK_TASK_METRICS`` silently
+      # (single-metric default).
+      DORIAN_KB_SNAPSHOT: /app/kb_snapshot/kb_snapshot.json
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PASSWORD: "${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PORT: "${DORIAN_REDIS_PORT:-6379}"
+    working_dir: /app
+    volumes:
+      - backend_venv:/app/.venv
+      - app_data:/app/data
+      - rl_dataset_cache:/tmp/dorian_rl_datasets
+      - rl_policy_state:/app/volumes/rl_policy
+      # Shared KB snapshot — the backend writes it, the trainer reads.
+      # ``ro`` because the trainer never writes the snapshot.
+      - kb_snapshot:/app/kb_snapshot:ro
+    depends_on:
+      bootstrap:
+        condition: service_started
+      gateway:
+        condition: service_healthy
+    networks:
+      - dorian
+    restart: on-failure:3
+
+  # ==========================================================================
+  # Phase 3.5 — Go event bus
+  #
+  # The new transport layer for events produced by the Python backend.
+  # In local dev it runs with DORIAN_EVENTBUS_SHADOW=1 on the backend
+  # (see the backend service below) so every emit is tee'd here. The
+  # authoritative-type toggle is empty by default — local dispatch still
+  # runs in parallel so nothing is lost if the bus is unreachable.
+  # ==========================================================================
+
+  # Event-bus producer + XADD endpoints now live in the consolidated
+  # ==========================================================================
+  # FLAML seeder — dedicated long-running process (same pattern as
+  # ``rl-trainer``). Continuously runs FLAML against every public
+  # dataset, 1.5h per dataset by default, and persists every trial
+  # through the pipeline index:
+  #
+  #   * doc_pipelines (document store) — picked up by the UI
+  #     pipelines list.
+  #   * relational ``pipelines`` — leaderboard ranking source.
+  #   * relational ``evaluations`` — one row per (pipeline × dataset)
+  #     so FLAML's scores appear on the per-dataset leaderboard even
+  #     when the structural pipeline is a dedupe.
+  #
+  # Identity uses ``canonical_instance_hash`` (value-sensitive), NOT
+  # ``class_hash`` — a pipeline with ``C=0.5`` vs ``C=1.0`` is two
+  # distinct rows. Disabled by default (profile="flaml"). Enable
+  # with: ``docker compose --profile flaml up flaml-seeder``.
+  # ==========================================================================
+  flaml-seeder:
+    image: dorian-backend:local
+    container_name: dorian-flaml-seeder
+    # Was profile-gated; now part of the default service set so the
+    # leaderboard fills continuously rather than only when an operator
+    # remembers ``--profile flaml``. Resource budget is bounded by
+    # ``cpus: 64`` + the aggregate ceiling at the bottom of this file.
+    command: ["uv", "run", "--no-sync", "python", "-m", "rl.priors.flaml_seeder"]
+    # Generous individual ceiling — aggregate budget across all
+    # services is the real guard (sum of ``cpus:`` here ≈ 288, or
+    # 75% of the 384-core host; see the resource budget block at
+    # the bottom of this file). Without thread-env caps the
+    # 2026-04-27 incident hit 31394% CPU; the OMP/OPENBLAS/MKL
+    # vars below remain the in-process backstop independent of
+    # cgroup delegation.
+    cpus: 64
+    mem_limit: 128g
+    environment:
+      DORIAN_ENV: docker
+      PYTHONUNBUFFERED: "1"
+      DORIAN_FLAML_HOURS_PER_DATASET: "${DORIAN_FLAML_HOURS_PER_DATASET:-1.5}"
+      DORIAN_FLAML_ONCE: "${DORIAN_FLAML_ONCE:-0}"
+      DORIAN_FLAML_ESTIMATORS: "${DORIAN_FLAML_ESTIMATORS:-lgbm,xgboost,rf,extra_tree,lrl1,lrl2,kneighbor}"
+      # Per-process thread caps. Combined with the cgroup ceiling
+      # this keeps inner FLAML workers from each spawning $nproc
+      # threads (multiplied against ``n_jobs``).
+      OMP_NUM_THREADS: "8"
+      OPENBLAS_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+      NUMEXPR_NUM_THREADS: "8"
+      JOBLIB_TEMP_FOLDER: "/tmp"
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PASSWORD: "${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PORT: "${DORIAN_REDIS_PORT:-6379}"
+    working_dir: /app
+    volumes:
+      - backend_venv:/app/.venv
+      - app_data:/app/data
+      - rl_dataset_cache:/tmp/dorian_rl_datasets
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bootstrap:
+        condition: service_started
+    networks:
+      - dorian
+    # ``unless-stopped`` instead of ``on-failure:5``: the seeder is a
+    # long-running daemon, and previous SIGTERMs (e.g. host reboot,
+    # ``docker compose stop``) shouldn't permanently retire it. The
+    # earlier observation — container present at 0% CPU after a SIGTERM
+    # at 10:34 today — was the on-failure policy refusing to bring
+    # back a non-failure exit. ``unless-stopped`` matches the user's
+    # "continuous load" expectation while still respecting an explicit
+    # ``compose stop`` of the service.
+    restart: unless-stopped
+
+  # ==========================================================================
+  # dorian-engines — supervisor running every Rust engine in one
+  # process. Currently: cross-product fill-in + AutoML driver
+  # (placeholder until the driver lands). RL ports here in a
+  # follow-up so this binary subsumes the Python rl-trainer too —
+  # at that point we get one engine container per host instead of
+  # the current rl-trainer + flaml-seeder + engines split.
+  # ==========================================================================
+  engines:
+    image: dorian-backend:local
+    container_name: dorian-engines
+    # Binary lives in the shared cargo_target volume so the
+    # backend-image build container's compile lands where this
+    # container can read it. Built with
+    # ``CARGO_TARGET_DIR=/cargo-target cargo build -p dorian-engines --release``.
+    command: ["/cargo-target/release/dorian-engines"]
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 256
+    environment:
+      DORIAN_ENV: docker
+      RUST_LOG: info
+      DORIAN_POSTGRES_HOST: postgres
+      DORIAN_POSTGRES_PORT: "${DORIAN_POSTGRES_PORT:-5432}"
+      DORIAN_POSTGRES_USER: dorian
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_POSTGRES_DATABASE: dorian
+      DORIAN_REDIS_URL: "redis://dorian:${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}@redis:${DORIAN_REDIS_PORT:-6379}"
+      DORIAN_XPRODUCT_POLL_SECS: "${DORIAN_XPRODUCT_POLL_SECS:-30}"
+      DORIAN_XPRODUCT_RATE: "${DORIAN_XPRODUCT_RATE:-10}"
+      DORIAN_XPRODUCT_BATCH: "${DORIAN_XPRODUCT_BATCH:-256}"
+      DORIAN_AUTOML_OPTIMIZER: "${DORIAN_AUTOML_OPTIMIZER:-smac}"
+      DORIAN_AUTOML_POLL_SECS: "${DORIAN_AUTOML_POLL_SECS:-60}"
+      # KB snapshot path — the AutoML driver loads this once at
+      # startup to enumerate operator candidates per logical task.
+      DORIAN_KB_SNAPSHOT: "/app/volumes/kb_snapshot.json"
+    volumes:
+      - cargo_target:/cargo-target:ro
+      - kb_snapshot:/app/volumes:ro
+    depends_on:
+      # Must wait for bootstrap to COMPLETE (not just start) so the
+      # KB snapshot written by the seed-kb step exists before the
+      # AutoML driver tries to load it at startup.
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - dorian
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Rust event-handler subscriber.
+  #
+  # Hosts the auto-task / data-science-task / evaluation-procedure /
+  # session-meta / pipeline / interaction handlers ported from
+  # ``dorian/event/handlers/*.py``. The python registry comments
+  # (``# handle_auto_task_selection ported to … auto_task.rs``)
+  # documented the handover, but no service ran the binary — so
+  # importing a dataset produced no auto-detected task, no
+  # ``state/queries`` for the sidebar selectors, and no
+  # recommendations. This service closes that gap.
+  #
+  # XREADGROUP-based: pulls events from the shared Redis streams
+  # (``events:user`` / ``events:bg``) the python backend ALSO writes
+  # to, so handlers stay coherent across the rust + python halves
+  # while the migration completes.
+  # ==========================================================================
+  rust-backend:
+    image: dorian-backend:local
+    container_name: dorian-rust-backend
+    command: ["/cargo-target/release/dorian-backend"]
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 256
+    environment:
+      DORIAN_ENV: docker
+      RUST_LOG: "${RUST_LOG_RUST_BACKEND:-info}"
+      # Redis: same-shape URL the gateway uses. The rust backend
+      # only needs read access to the shared streams + write access
+      # to the per-user output stream (``{uid}:{session}:stream``).
+      REDIS_URL: "redis://dorian:${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}@redis:${DORIAN_REDIS_PORT:-6379}"
+      # Postgres for handlers that hit the experiment store
+      # (``DataProfiled`` writes the dataset profile + metafeatures
+      # to the typed ``datasets`` table). The rust backend expects
+      # the unprefixed ``POSTGRES_*`` env shape (see
+      # ``engine/backend/src/pg.rs``); the python-shaped
+      # ``DORIAN_POSTGRES_*`` doesn't apply here.
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "${DORIAN_POSTGRES_PORT:-5432}"
+      POSTGRES_USER: dorian
+      POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      POSTGRES_DB: dorian
+      # KB snapshot — auto_task / data_science_task read it for
+      # task-type → display-name lookups and metric resolution.
+      DORIAN_KB_SNAPSHOT: "/app/volumes/kb_snapshot.json"
+      # Eventbus stream names — must match the python emitters
+      # (``backend.events`` writes ``events:user`` / ``events:bg``).
+      EVENTBUS_STREAM_USER: "${DORIAN_EVENTBUS_STREAM_USER:-events:user}"
+      EVENTBUS_STREAM_BG: "${DORIAN_EVENTBUS_STREAM_BG:-events:bg}"
+      # Slack webhook — replaces ``dorian/event/handlers/notifications.py``.
+      # Empty value (the dev default) short-circuits every slack handler,
+      # matching the python ``_is_enabled()`` gate. The value lives in
+      # ``config/config.yaml`` (gitignored); scripts/up.sh
+      # exports it from there into ``.env`` so compose picks it up.
+      DORIAN_SLACK_WEBHOOK_URL: "${DORIAN_SLACK_WEBHOOK_URL-}"
+    volumes:
+      - cargo_target:/cargo-target:ro
+      - app_data:/app/data:ro
+      - kb_snapshot:/app/volumes:ro
+    depends_on:
+      # Must wait for bootstrap to COMPLETE so the KB snapshot exists
+      # before auto_task / data_science_task handlers try to read it.
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - dorian
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Phase 4 — Backend (FastAPI) + Gateway (Rust)
+  # ==========================================================================
+
+  backend:
+    image: dorian-backend:local
+    container_name: dorian-backend
+    # ``--no-sync`` because the backend_venv volume is pre-populated
+    # by the backend-image service (uv sync + dorian_native wheel
+    # install). ``uv run`` without ``--no-sync`` tries to reconcile
+    # the venv against pyproject.toml + uv.lock and hits pypi for
+    # editable submodule metadata — that's a needless network
+    # dependency every boot AND it undoes the native wheel install.
+    command: ["uv", "run", "--no-sync", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    # Auto-recover from native crashes (SIGSEGV / exit 139) instead of leaving
+    # the container dead. See also ``stop_grace_period`` — longer-running
+    # handlers need more than the default 10s to unwind before SIGKILL.
+    restart: on-failure:5
+    stop_grace_period: 60s
+    cpus: 32
+    mem_limit: 64g
+    environment:
+      DORIAN_ENV: docker
+      OMP_NUM_THREADS: "8"
+      OPENBLAS_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+      NUMEXPR_NUM_THREADS: "8"
+      # Disable Python stdout block buffering so docker logs reflect
+      # real-time progress (otherwise long CPU-bound stretches like the
+      # BK-Tree exact-GED load look like a stall when they're just
+      # holding output in a 4 KB stdio buffer).
+      PYTHONUNBUFFERED: "1"
+      # Rust expand_* port soak flags (#72). Default ON for the two
+      # I/O-free passes (dataset + printout); state / categorical /
+      # compound stay opt-in until the dev soak signals clean. Set
+      # the env var to ``0`` on the host to roll back to python.
+      DORIAN_USE_RUST_EXPAND_DATASET: "${DORIAN_USE_RUST_EXPAND_DATASET:-1}"
+      DORIAN_USE_RUST_EXPAND_PRINTOUT: "${DORIAN_USE_RUST_EXPAND_PRINTOUT:-1}"
+      # Rust pipeline runner — walks the Dask graph in topological
+      # order from rust without holding the GIL during scheduling.
+      # Default ON to fix the rl-trainer "Event loop unresponsive
+      # in Nanny for 3.5s" GIL deadlock seen on 2026-04-27.
+      DORIAN_USE_RUST_RUNNER: "${DORIAN_USE_RUST_RUNNER:-1}"
+      # Kill-switch for RL-driven cross-product trial submission.
+      # When "1", ``schedule_trials_for_new_{dataset,pipeline}`` is a no-op.
+      # Keep this on while investigating the Dask scheduler segfault under
+      # RL fan-out; unset once the root cause is understood.
+      DISABLE_CROSS_PRODUCT_TRIALS: "1"
+      # Kill-switch for the background RL generation scheduler itself.
+      # ``config.generation.enabled=true`` starts ``GenerationScheduler`` in
+      # the FastAPI lifespan. Set to 0/false/off/no to override and keep
+      # the scheduler dormant. Use when the event handler pool is
+      # saturated by per-node RL events and user sessions are starving.
+      # Concurrent execution is bounded by RL_MAX_CONCURRENT below; the
+      # admin endpoint ``POST /admin/rl/concurrency?limit=N`` adjusts it
+      # at runtime without restart.
+      # v1 generation scheduler (dorian/pipeline/generation/scheduler.py)
+      # disabled during the v2 cutover. The v2 agent
+      # (rl-trainer container, rl/ module) is the sole RL agent now.
+      # Flip back to "1" if you need to compare v1 vs v2 side-by-side.
+      RL_GENERATION_ENABLED: "0"
+      # Maximum number of RL-generated pipelines that may execute
+      # concurrently. Enforced by a dynamic gate in backend/queue.py.
+      # Independent of RL_GENERATION_ENABLED: once the scheduler is back
+      # on, this cap bounds its downstream pressure.
+      #
+      # This is only the STARTUP default — change at runtime without
+      # restart via the admin endpoint:
+      #   curl 'http://<backend>:8000/admin/rl/concurrency'
+      #   curl -X POST 'http://<backend>:8000/admin/rl/concurrency?limit=32'
+      # Gateway HMAC signing applies on the public side.
+      #
+      # Sizing guide (prod: 16-worker Dask cluster, 1.5 TB RAM):
+      #   16 → one concurrent RL run per Dask worker, baseline
+      #   32 → 2× oversubscription, fine when user traffic is light
+      #   64+ → heavy generation burst; monitor event-handler p95
+      RL_MAX_CONCURRENT: "16"
+      # -------------------------------------------------------------------
+      # Go event-bus integration (phase A/B/C of the migration)
+      # -------------------------------------------------------------------
+      # Tee every emit to the consolidated Rust gateway on :8080.
+      # Safe to leave on in local dev — the Python bus still dispatches
+      # authoritatively; this just records events durably in Redis
+      # Streams so operators can replay / audit.
+      DORIAN_EVENTBUS_SHADOW: "1"
+      DORIAN_EVENTBUS_URL: http://gateway:8080
+      # Exec-worker completion events are produced directly onto
+      # Redis Streams, not through backend.events.aemit(). The Python
+      # subscriber must treat them as authoritative or it will ACK/skip
+      # them as shadow-only events, leaving profiling stuck before
+      # DataProfiled and therefore before dataset persistence /
+      # recommendations.
+      DORIAN_EVENTBUS_AUTHORITATIVE_DEFAULTS: "DQCheckProfileAndQualityCompleted"
+      # Start the in-process subscriber so events flipped to
+      # "authoritative in Go" via /admin/eventbus/authoritative actually
+      # get dispatched. No-op until at least one type is flipped.
+      DORIAN_EVENTBUS_SUBSCRIBER: "1"
+      # -------------------------------------------------------------------
+      # Admin bearer token — required on X-Admin-Token header for every
+      # state-changing admin endpoint (see backend/admin_auth.py).
+      # Empty = admin mutations are 503 (fail-closed). Auto-generated and
+      # persisted to .env.local by scripts/up.sh; for a bare
+      # ``docker compose up`` override via shell env or a local .env file.
+      # -------------------------------------------------------------------
+      DORIAN_ADMIN_TOKEN: "${DORIAN_ADMIN_TOKEN:?required; populate config/config.yaml from config/config.yaml.example}"
+      # -------------------------------------------------------------------
+      # HMAC request signing. Required — backend + gateway + frontend all
+      # rely on this to validate each request. ``scripts/up.sh`` writes
+      # it to .env automatically; for a fresh checkout: ``cp .env.example
+      # .env`` then generate with ``openssl rand -hex 32``.
+      # -------------------------------------------------------------------
+      DORIAN_HMAC_SECRET: "${DORIAN_HMAC_SECRET:?required; populate config/config.yaml from config/config.yaml.example}"
+      # -------------------------------------------------------------------
+      # DB credentials — env vars take precedence over config.yaml.
+      # .env ships dev defaults; production values come from .env.local
+      # (written by scripts/up.sh + config/config.yaml).
+      # -------------------------------------------------------------------
+      DORIAN_POSTGRES_PASSWORD: "${DORIAN_POSTGRES_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PASSWORD: "${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_REDIS_PORT: "${DORIAN_REDIS_PORT:-6379}"
+    working_dir: /app
+    # Backend stays docker-internal — the gateway is the single
+    # external entry point and proxies HTTP + WebSocket
+    # (/ws/*) to the backend over the docker network. Removing the
+    # external port mapping eliminates the dual-target ambiguity that
+    # bit us on 2026-04-28: SPA was bundled with NEXT_PUBLIC_BACKEND_URL
+    # = backend:8000 while /session/* lived on the gateway. With
+    # gateway-as-the-only-public-entry, there's exactly one URL the SPA
+    # can target.
+    volumes:
+      - backend_venv:/app/.venv
+      - app_data:/app/data
+      - dorian_results:/tmp/dorian_results
+      - hf_cache:/root/.cache/huggingface
+      # Host-mounted backups: survive `docker compose down -v` so user
+      # data can be restored into a fresh rebuild via /admin/restore.
+      - ./backups:/app/backups
+      # KB snapshot, shared with the gateway service. Backend writes
+      # via ``scripts/export_kb_snapshot.py``; gateway reads at startup.
+      - kb_snapshot:/app/volumes
+    depends_on:
+      bootstrap:
+        condition: service_started
+    networks:
+      - dorian
+    healthcheck:
+      # /healthz returns 503 when the python event-bus worker pool has
+      # stalled (silent-degradation pattern documented in
+      # project_python_eventbus_workers_degrade.md). Probing
+      # /openapi.json only verified that uvicorn was bound — it didn't
+      # catch the case where uvicorn was happily serving HTTP but local
+      # event handlers (seed_session, slack_on_*) had stopped firing,
+      # which manifested as empty sidebar selectors after enough
+      # lifespan reloads. With /healthz the docker `restart: on-failure`
+      # policy now recycles the container automatically when the pool
+      # stalls instead of leaving a half-dead backend in rotation.
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/healthz', timeout=8); sys.exit(0 if r.status==200 else 1)\""]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      # Lifespan startup is now near-instant: KD-Tree loads sync (cheap),
+      # BK-Tree exact-GED load and KB warming (get_all_kb_operator_params
+      # + warm_catalog_cache) are both kicked off as background tasks.
+      # The first WS client transparently waits on the catalog cache lock
+      # if warm-up is still in flight.
+      start_period: 60s
+
+  # Consolidated Rust/Tokio gateway — serves both the HTTP reverse-
+  # proxy role and the event-bus XADD producer role in one axum
+  # binary. The Go gateway and eventbus services were retired with
+  # task #57; this binary is the only ingress.
+  #
+  # Single port, single binary: HMAC middleware on every non-health
+  # route, reverse-proxy fallback routes everything else to the
+  # Python backend (matches the legacy Go behaviour). Event-bus
+  # endpoints (``/emit``, ``/stats``, ``/eventbus/health``) live on
+  # the same router so Python producers that used the separate
+  # :8081 event-bus URL now hit this one.
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway-rs
+    container_name: dorian-gateway
+    cpus: 8
+    mem_limit: 8g
+    environment:
+      DORIAN_GATEWAY_BIND: "0.0.0.0:8080"
+      DORIAN_REDIS_URL: "redis://dorian:${DORIAN_REDIS_PASSWORD:?required; populate config/config.yaml from config/config.yaml.example}@redis:${DORIAN_REDIS_PORT:-6379}"
+      DORIAN_HMAC_SECRET: "${DORIAN_HMAC_SECRET:?required; populate config/config.yaml from config/config.yaml.example}"
+      DORIAN_BACKEND_URL: "http://backend:8000"
+      DORIAN_EVENTBUS_STREAM_USER: "${DORIAN_EVENTBUS_STREAM_USER:-events:user}"
+      DORIAN_EVENTBUS_STREAM_BG: "${DORIAN_EVENTBUS_STREAM_BG:-events:bg}"
+      DORIAN_EVENTBUS_STREAM_MAXLEN: "${DORIAN_EVENTBUS_STREAM_MAXLEN:-100000}"
+      DORIAN_EVENTBUS_BACKPRESSURE: "${DORIAN_EVENTBUS_BACKPRESSURE:-0.90}"
+      DORIAN_KB_SNAPSHOT: "/app/volumes/kb_snapshot.json"
+      # CORS origins — comma-separated list of browser origins allowed
+      # to call gateway-served routes (`/session/*`, `/eventbus/*`,
+      # `/catalog/*`). Without this layer, native gateway endpoints
+      # have no `Access-Control-Allow-Origin` header and the SPA at
+      # :3000 gets blocked at preflight. Default keeps the prod
+      # remote deployment + localhost devtools both working.
+      DORIAN_CORS_ORIGINS: "${DORIAN_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}"
+      RUST_LOG: "${RUST_LOG:-dorian_gateway=info,tower_http=info,warn}"
+    ports:
+      # Gateway is the SOLE public API entry point. Bound to host
+      # port 8000 because that's the firewall-open port on the deployment host
+      # (8080 isn't). Backend listens internally on container-port
+      # 8000 over the docker network; the gateway proxies non-native
+      # routes + the WebSocket upgrade through to it. The SPA hits
+      # exactly one URL — http://<host>:8000 — for everything
+      # (REST + WS).
+      - "8000:8080"
+    volumes:
+      # Shared KB snapshot: backend writes, gateway reads at startup
+      # to back the catalog routes (operators/tasks/objectives/evals/
+      # operator-params). Read-only mount — gateway should not write
+      # to the snapshot, only consume.
+      - kb_snapshot:/app/volumes:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - dorian
+    healthcheck:
+      # curl is installed in the gateway runtime image; ``/dev/tcp``
+      # isn't available in debian slim's dash. ``-f`` fails on
+      # non-2xx so compose's retry logic can react.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ==========================================================================
+  # Phase 5 — Frontend (Next.js)
+  # ==========================================================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Build-time vars are baked into the client JS bundle. The
+      # ``scripts/up.sh`` script sources ``config/config.yaml`` (via
+      # ``scripts/_config_export.py``) before invoking compose, so the
+      # values below are exported into the build environment.
+      #
+      # ``localhost:*`` defaults are gated to ``DORIAN_ENV=dev`` only
+      # (see DORIAN_ENV at the bottom). Any other value (``docker`` /
+      # ``prod``) requires the real URLs to be set explicitly — the
+      # ``:?`` makes compose abort with "variable required" instead of
+      # silently producing a bundle that points the browser at the
+      # operator's loopback.
+      args:
+        # Local-dev defaults match the prod split-port architecture:
+        # HTTP same-origin via Next.js rewrites (:3000), WS direct to
+        # gateway (:8000). Prod overrides via .env / scripts/up.sh.
+        NEXT_PUBLIC_WS_URL:       "${NEXT_PUBLIC_WS_URL:-ws://localhost:8000/ws}"
+        NEXT_PUBLIC_BACKEND_URL:  "${NEXT_PUBLIC_BACKEND_URL:-http://localhost:3000}"
+        NEXT_PUBLIC_FRONTEND_URL: "${NEXT_PUBLIC_FRONTEND_URL:-http://localhost:3000}"
+        # Must equal DORIAN_HMAC_SECRET so the frontend's signed requests
+        # validate against the backend (both sides use the same key).
+        # scripts/up.sh exports it from the hmac.secret field of config/config.yaml.
+        NEXT_PUBLIC_HMAC_SECRET:  "${NEXT_PUBLIC_HMAC_SECRET:?required; populate config/config.yaml from config/config.yaml.example}"
+        # GitHub OAuth is optional — empty values disable the GitHub
+        # button on the sign-in screen. When set, both must be passed
+        # at build time so the NextAuth route's ``GitHubProvider``
+        # gets a non-empty ``clientId``; the OAuth provider validates
+        # ``client_id`` server-side, an empty value 502s with
+        # "OAuthSignin" before the provider even receives the request.
+        NEXT_PUBLIC_GITHUB_ID:     "${NEXT_PUBLIC_GITHUB_ID-}"
+        NEXT_PUBLIC_GITHUB_SECRET: "${NEXT_PUBLIC_GITHUB_SECRET-}"
+    container_name: dorian-frontend
+    cpus: 4
+    mem_limit: 8g
+    environment:
+      # NextAuth base URL. ``scripts/up.sh`` derives this
+      # from ``DORIAN_PUBLIC_URL`` and writes it to ``.env``. Failing
+      # fast here prevents NextAuth from sending a localhost callback
+      # to the OAuth provider — the prod-on-:3000 remote deployment
+      # caught that on 2026-04-28.
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET-}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - dorian
+
+# =============================================================================
+# Volumes — named volumes for data persistence across restarts
+# =============================================================================
+
+volumes:
+  # Empty mappings (not null) so deploy/docker-compose.prod.yml can merge
+  # bind-mount driver_opts in via `podman-compose`. podman-compose's merge
+  # refuses null+dict; docker compose handles it either way.
+  redis_data: {}
+  postgres_data: {}
+  backend_venv: {}
+  uv_cache: {}
+  # Cargo build cache for dorian_native. Keeps the ~500 MB target dir
+  # across container restarts so incremental rebuilds stay seconds-
+  # scale instead of 5-10 min from scratch.
+  cargo_target: {}
+  app_data: {}
+  dorian_results: {}
+  hf_cache: {}
+  rl_dataset_cache: {}
+  # Learned RL policy state — survives container restarts so the
+  # memory / hedge weights accumulated across thousands of episodes
+  # don't have to be re-bootstrapped cold on every deploy.
+  rl_policy_state: {}
+  # KB snapshot, written by ``scripts/export_kb_snapshot.py`` running in
+  # the backend container, read by the rust backend + gateway for KB
+  # queries. Shared volume keeps a single source of truth.
+  kb_snapshot: {}
+
+# =============================================================================
+# Network
+# =============================================================================
+
+networks:
+  dorian:
+    name: dorian_network

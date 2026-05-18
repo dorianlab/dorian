@@ -1,0 +1,15 @@
+{
+  "description": "Drop the module-level docstring. Tree-sitter exposes it as expression_statement → string with text starting with triple quotes.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "expression_statement", "language": "python"},
+      "1": {"type": "string", "text": "^(\"\"\"|''')", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "delete", "nodes": ["0", "1"], "mode": "recursive"}
+  ]
+}

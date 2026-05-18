@@ -1,0 +1,63 @@
+# =============================================================================
+# Dockerfile.gateway-rs — Rust gateway (axum + tonic)
+# =============================================================================
+#
+# Builds a statically-linked dorian-gateway binary from the
+# engine/ workspace and packages it in a minimal runtime image.
+# Sole gateway implementation — the Go variant
+# (``Dockerfile.gateway`` + ``gateway/`` Go tree) was retired in
+# task #57 once parity was proven.
+# =============================================================================
+
+FROM rust:1.95-slim-bookworm AS builder
+
+# Protobuf compiler is needed by tonic-build upstream of the
+# gateway crate via the engine workspace's internal/pb references.
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        protobuf-compiler pkg-config libssl-dev ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+COPY engine ./engine
+# tonic-build needs ``proto/*.proto`` from the repo root for the
+# ``types`` crate — which the optimizer crate transitively depends
+# on via the gateway's KbSnapshot loader. Copy the proto tree so
+# tonic finds them at the relative paths the build scripts expect.
+COPY proto ./proto
+
+# Build only the gateway binary — other workspace members
+# (native/pyo3, cli, etc.) aren't needed in the container.
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/build/engine/target \
+    cd engine && cargo build --release -p gateway \
+    && cp target/release/dorian-gateway /tmp/dorian-gateway
+
+# ---------------------------------------------------------------------------
+# Runtime stage — debian slim (matches Go gateway's ca-certs footprint;
+# ~70 MB total vs. ~15 MB alpine, trading a few MB for glibc
+# compatibility with Rust's openssl-linked deps).
+# ---------------------------------------------------------------------------
+
+FROM debian:bookworm-slim
+
+# ``curl`` is here so the compose healthcheck can probe /health
+# without depending on bash's ``/dev/tcp`` (dash — debian slim's
+# default shell — doesn't implement that). Adds ~2 MB to the image;
+# avoids shelling out through a separate probe binary.
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /tmp/dorian-gateway /usr/local/bin/dorian-gateway
+
+# Non-root — same posture as the Go gateway.
+RUN useradd --uid 10001 --user-group --shell /sbin/nologin gateway
+USER gateway
+
+ENV DORIAN_GATEWAY_BIND=0.0.0.0:8080
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/dorian-gateway"]

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "rf_minimal",
+    "description": "RandomForestClassifier wired directly to the frozen harness. Minimum viable pipeline — the simplest valid shape an agent can commit.",
+    "datasets": [],
+    "actions": [
+      {"kind": "add_node", "op_key": "sklearn.ensemble.RandomForestClassifier"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_train", "dst_op": "sklearn.ensemble.RandomForestClassifier", "dst_port": "X_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "y_train", "dst_op": "sklearn.ensemble.RandomForestClassifier", "dst_port": "y_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_test", "dst_op": "sklearn.ensemble.RandomForestClassifier", "dst_port": "X_test"},
+      {"kind": "add_edge", "src_op": "sklearn.ensemble.RandomForestClassifier", "src_port": "y_pred", "dst_op": "sklearn.metrics.accuracy_score", "dst_port": "1"},
+      {"kind": "commit"}
+    ]
+  },
+  {
+    "name": "gradient_boosting_minimal",
+    "description": "GradientBoostingClassifier on the bare harness. Standard strong baseline for tabular classification.",
+    "datasets": [],
+    "actions": [
+      {"kind": "add_node", "op_key": "sklearn.ensemble.GradientBoostingClassifier"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_train", "dst_op": "sklearn.ensemble.GradientBoostingClassifier", "dst_port": "X_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "y_train", "dst_op": "sklearn.ensemble.GradientBoostingClassifier", "dst_port": "y_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_test", "dst_op": "sklearn.ensemble.GradientBoostingClassifier", "dst_port": "X_test"},
+      {"kind": "add_edge", "src_op": "sklearn.ensemble.GradientBoostingClassifier", "src_port": "y_pred", "dst_op": "sklearn.metrics.accuracy_score", "dst_port": "1"},
+      {"kind": "commit"}
+    ]
+  },
+  {
+    "name": "logreg_minimal",
+    "description": "LogisticRegression on the bare harness. Cheap linear baseline, works well on credit-g / kr-vs-kp.",
+    "datasets": ["credit-g", "kr-vs-kp"],
+    "actions": [
+      {"kind": "add_node", "op_key": "sklearn.linear_model.LogisticRegression"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_train", "dst_op": "sklearn.linear_model.LogisticRegression", "dst_port": "X_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "y_train", "dst_op": "sklearn.linear_model.LogisticRegression", "dst_port": "y_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_test", "dst_op": "sklearn.linear_model.LogisticRegression", "dst_port": "X_test"},
+      {"kind": "add_edge", "src_op": "sklearn.linear_model.LogisticRegression", "src_port": "y_pred", "dst_op": "sklearn.metrics.accuracy_score", "dst_port": "1"},
+      {"kind": "commit"}
+    ]
+  },
+  {
+    "name": "extra_trees_minimal",
+    "description": "ExtraTreesClassifier on the bare harness. Randomised tree ensemble, often strong on mfeat-fourier.",
+    "datasets": ["mfeat-fourier"],
+    "actions": [
+      {"kind": "add_node", "op_key": "sklearn.ensemble.ExtraTreesClassifier"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_train", "dst_op": "sklearn.ensemble.ExtraTreesClassifier", "dst_port": "X_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "y_train", "dst_op": "sklearn.ensemble.ExtraTreesClassifier", "dst_port": "y_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_test", "dst_op": "sklearn.ensemble.ExtraTreesClassifier", "dst_port": "X_test"},
+      {"kind": "add_edge", "src_op": "sklearn.ensemble.ExtraTreesClassifier", "src_port": "y_pred", "dst_op": "sklearn.metrics.accuracy_score", "dst_port": "1"},
+      {"kind": "commit"}
+    ]
+  },
+  {
+    "name": "decision_tree_minimal",
+    "description": "DecisionTreeClassifier on the bare harness. Fast baseline that always fits.",
+    "datasets": [],
+    "actions": [
+      {"kind": "add_node", "op_key": "sklearn.tree.DecisionTreeClassifier"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_train", "dst_op": "sklearn.tree.DecisionTreeClassifier", "dst_port": "X_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "y_train", "dst_op": "sklearn.tree.DecisionTreeClassifier", "dst_port": "y_train"},
+      {"kind": "add_edge", "src_op": "sklearn.model_selection.train_test_split", "src_port": "X_test", "dst_op": "sklearn.tree.DecisionTreeClassifier", "dst_port": "X_test"},
+      {"kind": "add_edge", "src_op": "sklearn.tree.DecisionTreeClassifier", "src_port": "y_pred", "dst_op": "sklearn.metrics.accuracy_score", "dst_port": "1"},
+      {"kind": "commit"}
+    ]
+  }
+]

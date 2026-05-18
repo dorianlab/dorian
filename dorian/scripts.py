@@ -1,28 +1,155 @@
 scripts = [
     """
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-Pipeline([('scaler', StandardScaler()), ('svc', SVC())])
+from matplotlib import pyplot as plt
+
+plt.show(X)
     """,
     """
-from sklearn import svm
-from sklearn.datasets import samples_generator
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import f_regression
-from sklearn.pipeline import Pipeline
+import pandas as pd
 
-# generate some data to play with
-X, y = samples_generator.make_classification(n_informative=5, n_redundant=0, random_state=42)
-# ANOVA SVM-C
-anova_filter = SelectKBest(f_regression, k=5)
-clf = svm.SVC(kernel='linear')
-anova_svm = Pipeline([('anova', anova_filter), ('svc', clf)])
-# You can set the parameters using the names issued
-# For instance, fit using a k of 10 in the SelectKBest
-# and a parameter 'C' of the svm
-anova_svm.set_params(anova__k=10, svc__C=.1).fit(X, y)
-prediction = anova_svm.predict(X)
-anova_svm.score(X, y) 
+# Load the COMPAS dataset
+# Note: Adjust the path to the location of your COMPAS dataset
+data = pd.read_csv('compas-scores-two-years.csv')
+    """,
+    """
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import pandas as pd
+
+data = pd.read_csv('compas-scores-two-years.csv')
+
+# Selecting features and target variable
+# Features to be used for classification (adjust as necessary)
+features = [
+    'age', 'sex', 'race', 'juv_fel_count', 'juv_misd_count', 'juv_other_count',
+    'priors_count', 'days_b_screening_arrest', 'c_charge_degree'
+]
+
+# Target variable (binary classification: recidivism within two years)
+target = 'two_year_recid'
+
+# Preprocessing
+# Convert categorical features to numeric using one-hot encoding
+df = pd.get_dummies(data, columns=['sex', 'race', 'c_charge_degree'], drop_first=True)
+
+# Extract features and target from the data
+X = df[features]
+y = df[target]
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Standardize the features (mean=0, variance=1)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize and train the classifier
+classifier = LogisticRegression(random_state=42)
+classifier.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = classifier.predict(X_test)
+
+# Evaluate the classifier
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+# Print evaluation results
+print(f'Accuracy: {accuracy:.2f}')
+print('Confusion Matrix:')
+print(conf_matrix)
+print('Classification Report:')
+print(class_report)
+    """,
+    """
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+
+# Load the COMPAS dataset
+# Note: Adjust the path to the location of your COMPAS dataset
+data = pd.read_csv('compas-scores-two-years.csv')
+
+# Selecting features and target variable
+# Features to be used for classification (adjust as necessary)
+features = [
+    'age', 'sex', 'race', 'juv_fel_count', 'juv_misd_count', 'juv_other_count',
+    'priors_count', 'days_b_screening_arrest', 'c_charge_degree'
+]
+
+# Target variable (binary classification: recidivism within two years)
+target = 'two_year_recid'
+
+# Splitting the data into features and target
+X = data[features]
+y = data[target]
+
+# Preprocessing
+# Define the categorical and numerical columns
+categorical_features = ['sex', 'race', 'c_charge_degree']
+numerical_features = [
+    'age', 'juv_fel_count', 'juv_misd_count', 'juv_other_count', 'priors_count', 'days_b_screening_arrest'
+]
+
+# DEBUG: REMOVE LATER
+# my_list = [1,2, [3,4], [[5]], [[[6], [7]]]]
+
+# Preprocessing for numerical data
+numerical_transformer = StandardScaler()
+
+# Preprocessing for categorical data
+categorical_transformer = OneHotEncoder(drop='first')
+
+# Combine preprocessing steps
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numerical_transformer, numerical_features),
+        ('cat', categorical_transformer, categorical_features)
+    ])
+
+# Create a pipeline that combines preprocessing with the classifier
+pipeline = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('classifier', LogisticRegression(random_state=42))
+])
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train the model
+pipeline.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = pipeline.predict(X_test)
+
+# Evaluate the classifier
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+# Print evaluation results
+print(f'Accuracy: {accuracy:.2f}')
+print('Confusion Matrix:')
+print(conf_matrix)
+print('Classification Report:')
+print(class_report)
+    """,
+]
+
+debug_scripts = [
+    """
+    categorical_features = ['sex', 'race', 'c_charge_degree']
+    numerical_features = [
+        'age', 'juv_fel_count', 'juv_misd_count', 'juv_other_count', 'priors_count', 'days_b_screening_arrest'
+    ]
     """
 ]

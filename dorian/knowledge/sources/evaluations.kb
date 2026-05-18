@@ -1,0 +1,14 @@
+# ── Evaluation Procedure is a Core Concept ──
+# "No Evaluation" is the explicit opt-out — keep it readable so users
+# don't read the dropdown's "None" entry as a missing-data bug.
+
+Pairwise Comparison is an Evaluation Procedure
+Automated (Hold-out) is an Evaluation Procedure
+K-fold Cross-validation is an Evaluation Procedure
+No Evaluation is an Evaluation Procedure
+
+# ── Link procedures to their interface templates ──
+# The interface defines the DAG shape; the procedure name is the user-facing label.
+
+Automated (Hold-out) implements Holdout Evaluation
+K-fold Cross-validation implements KFold Evaluation

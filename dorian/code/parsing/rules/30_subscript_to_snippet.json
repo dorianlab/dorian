@@ -1,0 +1,11 @@
+{
+  "description": "Convert ``df['col']`` (a subscript) into a Snippet that runs the slice on the root identifier's value at runtime. Keeps one descendant identifier matching the root variable name as the snippet's input port (position == root) so the var-resolution rewire downstream attaches it to the actual producer.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "subscript", "language": "python"}
+    }
+  },
+  "transformations": [
+    {"type": "subscript_to_snippet", "subscript_key": "0"}
+  ]
+}

@@ -1,0 +1,27 @@
+[package]
+name = "xproduct"
+description = "Cross-product engine — gentle cartesian completion of (pipeline × dataset) gaps"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "xproduct"
+path = "src/lib.rs"
+
+[[bin]]
+name = "xproduct"
+path = "src/main.rs"
+
+[dependencies]
+tokio              = { workspace = true }
+tokio-postgres     = { workspace = true }
+deadpool-postgres  = { workspace = true }
+redis              = { workspace = true }
+serde              = { workspace = true }
+serde_json         = { workspace = true }
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror          = { workspace = true }
+anyhow             = { workspace = true }
+uuid               = { workspace = true }
+chrono             = { workspace = true }

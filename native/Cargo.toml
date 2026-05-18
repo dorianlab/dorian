@@ -1,0 +1,16 @@
+[package]
+name = "dorian-native"
+version = "0.1.0"
+edition = "2021"
+description = "Compiled hot paths for Dorian: GED, BK-Tree, ranking"
+
+[lib]
+name = "dorian_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["extension-module"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rustc-hash = "2"           # fast FxHashMap / FxHashSet
+ordered-float = "5"        # NaN-safe floats for sorting

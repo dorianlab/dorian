@@ -1,0 +1,180 @@
+# ==========================================================================
+# LLM Operator — OpenRouter Chat Completion
+#
+# The core chat completion interface exposed via OpenRouter's Python SDK.
+# At execution time the resolver instantiates OpenRouter(api_key=…) and
+# calls client.chat.send(messages=…, model=…, temperature=…, …).
+# Ref: https://github.com/OpenRouterTeam/python-sdk
+# ==========================================================================
+
+openrouter.chat.completion is an Operator
+openrouter.chat.completion is a LLM Chat Completion
+openrouter.chat.completion performs Text Generation
+openrouter.chat.completion performs Conversational AI
+openrouter.chat.completion performs Code Generation
+openrouter.chat.completion performs Summarization
+openrouter.chat.completion performs Question Answering
+openrouter.chat.completion performs Text Classification with LLM
+openrouter.chat.completion performs Structured Extraction
+openrouter.chat.completion implements Large Language Model
+
+# ---- Parameters ----
+# api_key is the only __init__ param (on the operator itself).
+openrouter.chat.completion has parameter api_key; is of type env
+
+# chat.send method params — declared on the method node (reached via
+# interface calls chain: LLM Chat Completion calls chat.send).
+chat.send has parameter messages; is of type list; with default [{"role": "user", "content": "Hello"}]
+chat.send has parameter model; is of type categorical; with default openai/gpt-4o; with choices openai/gpt-4o,openai/gpt-4o-mini,anthropic/claude-sonnet-4,anthropic/claude-haiku-4,google/gemini-2.0-flash-001,meta-llama/llama-3.1-70b-instruct
+chat.send has parameter temperature; is of type float; with default 1.0; with low 0.0; with high 2.0
+chat.send has parameter top_p; is of type float; with default 1.0; with low 0.0; with high 1.0
+chat.send has parameter max_tokens; is of type int; with default 1024; with low 1; with high 128000
+chat.send has parameter frequency_penalty; is of type float; with default 0.0; with low -2.0; with high 2.0
+chat.send has parameter presence_penalty; is of type float; with default 0.0; with low -2.0; with high 2.0
+# seed is optional (UNSET by default in the SDK) — omitted from DnD params.
+# chat.send has parameter seed; is of type int; with low 0; with high 2147483647
+
+# ==========================================================================
+# LLM-specific Risk taxonomy
+#
+# These risks are structurally different from traditional ML risks.
+# They cannot be validated with statistical checks on a DataFrame;
+# instead they require runtime guardrails operating on text.
+# ==========================================================================
+
+# ---- Top-level LLM risk categories ----
+Prompt Injection is a Risk
+Hallucination is a Risk
+Toxicity is a Risk
+Data Exfiltration is a Risk
+Over-reliance is a Risk
+Jailbreaking is a Risk
+
+# ---- LLM Risk → EU AI Ethics Principle mappings ----
+Prompt Injection is threat to Technical Robustness
+Prompt Injection is threat to Human Agency
+Hallucination is threat to Transparency
+Hallucination is threat to Accountability
+Toxicity is threat to Diversity Non-Discrimination Fairness
+Toxicity is threat to Societal Wellbeing
+Data Exfiltration is threat to Privacy
+Over-reliance is threat to Human Agency
+Jailbreaking is threat to Technical Robustness
+
+# ==========================================================================
+# Operator → Risk mappings (might_introduce)
+# ==========================================================================
+
+openrouter.chat.completion might introduce Prompt Injection
+openrouter.chat.completion might introduce Hallucination
+openrouter.chat.completion might introduce Toxicity
+openrouter.chat.completion might introduce Data Exfiltration
+openrouter.chat.completion might introduce Over-reliance
+openrouter.chat.completion might introduce Jailbreaking
+
+# ==========================================================================
+# LLM Checks — guardrail-oriented
+#
+# These map to check function stubs in dorian/toolbox/checks.py.
+# Unlike statistical checks they operate on text (prompts / responses),
+# not on DataFrames, so they are skipped during dataset profiling and
+# invoked at pipeline execution time.
+# ==========================================================================
+
+prompt_injection_scan is a Check
+prompt_injection_scan checks for Prompt Injection
+
+toxicity_scan is a Check
+toxicity_scan checks for Toxicity
+
+pii_leak_scan is a Check
+pii_leak_scan checks for Data Exfiltration
+
+hallucination_check is a Check
+hallucination_check checks for Hallucination
+
+# ==========================================================================
+# LLM Mitigations — Guardrails
+#
+# Guardrails are the LLM analogue of traditional bias mitigations.
+# They use the same rewrite annotation system (insert_before,
+# insert_after, add_parameter) to transform the pipeline DAG.
+# ==========================================================================
+
+# ---- Input Guardrail ----
+Input Guardrail is a Mitigation
+Input Guardrail with description Validate and sanitize user prompts before the LLM call
+Input Guardrail with long description "Insert an input validation node upstream of {operator} that scans user prompts for injection patterns, strips disallowed characters, and enforces length limits. This addresses {risk} by filtering adversarial inputs before they reach the language model."
+
+# ---- Output Guardrail ----
+Output Guardrail is a Mitigation
+Output Guardrail with description Validate and filter LLM responses after generation
+Output Guardrail with long description "Insert an output validation node downstream of {operator} that scans generated text for harmful content, PII, or policy violations. This addresses {risk} by catching problematic outputs before they reach the end user."
+
+# ---- System Prompt Hardening ----
+System Prompt Hardening is a Mitigation
+System Prompt Hardening with description Add security instructions to the system message
+System Prompt Hardening with long description "Add a system_prompt Parameter to {operator} containing explicit boundary instructions (role confinement, refusal directives, output format constraints). This addresses {risk} by reducing the model susceptibility to adversarial manipulation through prompt-level defenses."
+
+# ---- Content Filtering ----
+Content Filtering is a Mitigation
+Content Filtering with description Detect toxicity and PII in LLM outputs
+Content Filtering with long description "Insert a content filtering node downstream of {operator} that runs toxicity classification and PII entity detection on the generated text. Flagged responses are blocked or redacted. This addresses {risk} by preventing harmful or privacy-violating content from reaching users."
+
+# ---- Grounding ----
+Grounding is a Mitigation
+Grounding with description Fact-check LLM output against a knowledge source
+Grounding with long description "Insert a retrieval-augmented generation (RAG) verification node downstream of {operator} that cross-references the generated text against a trusted knowledge base. Claims not supported by the source material are flagged. This addresses {risk} by reducing unsupported or fabricated content."
+
+# ---- Temperature Reduction ----
+Temperature Reduction is a Mitigation
+Temperature Reduction with description Lower the temperature parameter to reduce randomness
+Temperature Reduction with long description "Set the temperature Parameter on {operator} to a low value (0.0-0.3) to make outputs more deterministic and factual. High temperature increases creative but potentially inaccurate generation. This addresses {risk} by constraining the sampling distribution."
+
+# ==========================================================================
+# Mitigation → Risk mappings (might_mitigate)
+# ==========================================================================
+
+# ---- Injection / Jailbreaking defenses ----
+Input Guardrail might mitigate Prompt Injection
+Input Guardrail might mitigate Jailbreaking
+System Prompt Hardening might mitigate Prompt Injection
+System Prompt Hardening might mitigate Jailbreaking
+System Prompt Hardening might mitigate Over-reliance
+
+# ---- Output safety ----
+Output Guardrail might mitigate Toxicity
+Output Guardrail might mitigate Data Exfiltration
+Output Guardrail might mitigate Hallucination
+Content Filtering might mitigate Toxicity
+Content Filtering might mitigate Data Exfiltration
+
+# ---- Factuality ----
+Grounding might mitigate Hallucination
+Grounding might mitigate Over-reliance
+Temperature Reduction might mitigate Hallucination
+
+# ==========================================================================
+# Ontological rewrite metadata — interface targeting + parameter signature
+#
+# Rule bodies (pattern + transformations) live in ``expdb.rewrites``
+# collection.  The KB declares which interface each mitigation applies to,
+# which IO ports it anchors on, and which parameters it exposes.
+# ==========================================================================
+
+# ---- Interface targeting ----
+Input Guardrail applies to LLM Chat Completion
+Output Guardrail applies to LLM Chat Completion
+Content Filtering applies to LLM Chat Completion
+Grounding applies to LLM Chat Completion
+System Prompt Hardening applies to LLM Chat Completion
+Temperature Reduction applies to LLM Chat Completion
+
+# ---- IO anchoring (insert_before intercepted ports) ----
+Input Guardrail has input messages
+
+# ---- Parameter signature ----
+System Prompt Hardening has parameter system_prompt
+Temperature Reduction has parameter temperature
+system_prompt is of type str
+temperature is of type float

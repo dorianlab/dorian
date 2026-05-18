@@ -1,0 +1,72 @@
+# -----------------------------------------------------------------------------
+# Build-context exclusions — KEEP THIS LEAN
+# -----------------------------------------------------------------------------
+# Docker transfers the ENTIRE context on every build. Anything not listed
+# here goes over the wire to the daemon. On Windows/WSL the transfer is
+# especially painful for big trees. Measure with:
+#   docker build --no-cache --progress=plain . 2>&1 | grep 'transferring context'
+# -----------------------------------------------------------------------------
+
+# Python tooling / caches
+.venv/
+.python-version
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Git + CI
+.git/
+.gitlab-ci-cache/
+
+# Node / Next.js (often 100s of MB)
+node_modules/
+frontend/node_modules/
+frontend/.next/
+.next/
+frontend/out/
+
+# Runtime state that must never end up in the image
+data/
+.data/
+backups/
+dorian_results/
+recordings/
+dorian/data/recordings/
+
+# RL / benchmarking scratch
+scripts/bench_*.json
+scripts/sweep_results*.json
+scripts/*.log
+
+# Rust build output
+engine/target/
+third_party/*/target/
+
+# IDE + OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docs / design that don't need to be in the image
+docs/
+*.md
+!README.md
+!CLAUDE.md
+
+# Tests directory — excluded from RUNTIME image (tests run before build).
+# Uncomment if tests are still needed inside the image:
+# tests/
+
+# Misc
+*.log
+.claude/
+.pytest_cache/
+.env.local
+frontend/.env.local

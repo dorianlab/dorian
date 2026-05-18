@@ -14,7 +14,7 @@ class xPathConstants:
     PARENT_TEXT=PARENT+'//'+TEXT
     FUNCS_PARAM_ELS_PREFIX="//*[text()='<funcName>']<parentXPath>"
     FUNCS_PARAM_ELS=FUNCS_PARAM_ELS_PREFIX+"//*[contains(text(),'Parameters')]"
-    PARAMTERS_PARENT_TABLE_LONGTABLE_CLASS="//table[contains(@class,'longtable')]"
+    PARAMTERS_PARENT_TABLE_LONGTABLE_CLASS="//table[contains(@class,'longtable') or contains(@class,'apisearch-table')]"
     PAREMETERS_TABLE_INSIDE_PARENT=["tbody/tr/td[1]//@href","tbody/tr/td/a/@href"]
 
 

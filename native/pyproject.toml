@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "dorian-native"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Compiled hot paths for Dorian: GED, BK-Tree, ranking"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "dorian_native"

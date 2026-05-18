@@ -1,0 +1,11 @@
+{
+  "description": "Single-fire global pass: collapse every Operator(name='<var>.<method>') (e.g. ``clf.fit``, ``scaler.transform``) into the bare method shortcut + chain edge from <var>'s producer at position='self'. Triggers off the module-root match so it fires exactly once per extraction.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "module", "language": "python"}
+    }
+  },
+  "transformations": [
+    {"type": "chain_all_method_shortcuts"}
+  ]
+}

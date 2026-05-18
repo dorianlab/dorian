@@ -1,0 +1,34 @@
+# ==========================================================================
+# Libraries
+#
+# A Library is a top-level Python package.  Operators belong to libraries
+# via their dotted FQN (the resolver splits on the first dot).
+#
+# When the pip package name differs from the Python import name, declare
+# it with ``has package``.  Libraries where they match (e.g. "openrouter")
+# don't need a ``has package`` entry — the resolver falls back to the
+# import name.
+#
+# Submodule hierarchy uses ``is subclass of`` to model nesting:
+#   sklearn.preprocessing is subclass of sklearn
+# This lets operators like sklearn.preprocessing.StandardScaler resolve
+# imports naturally from their FQN.
+# ==========================================================================
+
+# ---- Libraries ----
+sklearn is a Library; has package scikit-learn
+keras is a Library; has package tensorflow[keras]
+cv2 is a Library; has package opencv-python
+PIL is a Library; has package Pillow
+bs4 is a Library; has package beautifulsoup4
+openrouter is a Library
+pandas is a Library
+numpy is a Library
+trust is a Library
+
+# ---- OpenRouter module structure ----
+# The operator FQN openrouter.chat.completion is a semantic name.
+# The actual Python class is openrouter.OpenRouter.
+# The is_subclass_of relationship tells the resolver which Python class
+# to instantiate when the FQN doesn't resolve as a direct import path.
+openrouter.chat.completion is subclass of openrouter.OpenRouter

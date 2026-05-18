@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+gunicorn
+motor
+prometheus-fastapi-instrumentator
+pymongo
+python-multipart

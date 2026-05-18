@@ -1,7 +1,0 @@
-grammar.js binary
-binding.gyp binary
-**/src/grammar.json binary
-**/src/parser.c binary
-**/src/node-types.json binary
-**/src/binding.cc binary
-**/src/tree_sitter/* binary

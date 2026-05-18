@@ -1,0 +1,25 @@
+# Requirement is a Core Concept
+# https://digital-strategy.ec.europa.eu/en/library/ethics-guidelines-trustworthy-ai
+# TODO: Add 'has context' with descriptions and definitions
+Fairness is a Requirement
+Lawfulness is a Requirement
+Human Agency is a Requirement
+Human Oversight is a Requirement
+Safety is a Requirement
+Technical Robustness is a Requirement
+Privacy is a Requirement
+Data Governance is a Requirement
+Transparency is a Requirement
+Diversity is a Requirement
+Non-discrimination is a Requirement
+Fairness is a Requirement
+Societal Well-being is a Requirement
+Environmental Well-being is a Requirement
+Accountability is a Requirement
+Acceptance is a Requirement
+
+Equality is subclass of Fairness
+Equity is subclass of Fairness
+Bias is threat to Fairness
+Equality is dimension of Fairness
+Equity is dimension of Fairness

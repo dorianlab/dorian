@@ -1,0 +1,83 @@
+syntax = "proto3";
+package dorian.events;
+
+option go_package = "dorian/gateway/internal/pb/events";
+
+// ---------------------------------------------------------------------------
+// Wire-format event envelope.
+//
+// This defines the structure of events flowing between frontend ↔ Go gateway
+// ↔ Rust engine. The actual payload varies by event type; we use bytes for
+// the payload to allow msgpack (frontend WS) and protobuf (internal gRPC)
+// to coexist during migration.
+// ---------------------------------------------------------------------------
+
+message EventEnvelope {
+  string event      = 1; // event type name (PascalCase past-tense)
+  string uid        = 2;
+  string session    = 3;
+  string request_id = 4;
+  double timestamp  = 5;
+  bytes  payload    = 6; // msgpack or JSON encoded payload
+}
+
+// ---------------------------------------------------------------------------
+// Event categories (for routing decisions in the event bus split).
+// ---------------------------------------------------------------------------
+
+enum EventCategory {
+  EVENT_CATEGORY_UNSPECIFIED = 0;
+  EVENT_CATEGORY_ENGINE      = 1; // execution lifecycle → Rust
+  EVENT_CATEGORY_DOMAIN      = 2; // risks, recommendations → Rust (Phase 5)
+  EVENT_CATEGORY_SERVICE     = 3; // persistence, notifications → Go
+  EVENT_CATEGORY_CANVAS      = 4; // UI interactions → Go (persistence)
+}
+
+// ---------------------------------------------------------------------------
+// Key event payloads (strongly-typed alternatives to opaque bytes).
+// These are used for critical engine events; other events use the opaque
+// payload during migration.
+// ---------------------------------------------------------------------------
+
+message ExecutePipelineEvent {
+  string pipeline_id = 1;
+  string vault_nonce = 2; // for vault secret decryption
+  map<string, string> context = 3;
+}
+
+message PipelineRunInitialisedEvent {
+  string run_id      = 1;
+  string pipeline_id = 2;
+  map<string, string> node_ids = 3; // node_id -> node_name
+}
+
+message PipelineRunCompletedEvent {
+  string run_id = 1;
+  double duration_seconds = 2;
+  map<string, string> metrics = 3;
+}
+
+message PipelineRunFailedEvent {
+  string run_id = 1;
+  string error  = 2;
+  string failed_node_id = 3;
+}
+
+message NodeStartedEvent {
+  string run_id  = 1;
+  string node_id = 2;
+  double timestamp = 3;
+}
+
+message NodeCompletedEvent {
+  string run_id  = 1;
+  string node_id = 2;
+  double duration_seconds = 3;
+  optional string result_ref = 4;
+}
+
+message NodeFailedEvent {
+  string run_id  = 1;
+  string node_id = 2;
+  string error   = 3;
+}

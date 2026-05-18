@@ -1,0 +1,16 @@
+{
+  "description": "Promote a call-with-dotted-function (``obj.method(...)``) to an Operator whose name is the attribute's text (e.g. ``pd.read_csv`` → Operator(name=\"pd.read_csv\")). Subsequent rules rewrite the alias prefix into the FQN once the import-resolution rules have run.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "call", "language": "python"},
+      "1": {"type": "attribute", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "to_operator", "target": "0", "content_key": "1"},
+    {"type": "delete", "nodes": ["1"], "mode": "recursive"}
+  ]
+}

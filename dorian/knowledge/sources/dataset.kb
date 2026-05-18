@@ -1,0 +1,12 @@
+# ==========================================================================
+# Dataset Loader — dorian.io.dataset
+#
+# Platform operator for loading the session-bound dataset into the pipeline.
+# At expansion time the operator is replaced by a Parameter(fpath) →
+# pandas.read_csv sub-chain (see DATASET_EXPANSION_RULE in transforms.py).
+# The KB entry exists so the sidebar catalog includes the operator.
+# ==========================================================================
+
+dorian.io.dataset is an Operator
+dorian.io.dataset is a Function
+dorian.io.dataset performs Data Preparation

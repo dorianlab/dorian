@@ -1,0 +1,127 @@
+# ==========================================================================
+# Mitigation actions — TRUSTIFAI ontology
+#
+# Each mitigation has a short description (WithDescription) and a long
+# description template (WithLongDescription) stored in the KB.  Templates
+# use {operator}, {risk}, {task}, {alternatives} placeholders that are
+# interpolated at render time by the backend risk_events module.
+#
+# Most mitigations will be implemented as graph rewrite rules
+# (analogous to dorian/code/parsing/rule.py) that automatically
+# transform the pipeline DAG when accepted by the user.
+# ==========================================================================
+
+# ---- Mitigation nodes + short + long descriptions ----
+# Long descriptions are quoted ("...") to prevent predicate substrings
+# (e.g. "is a") inside the text from triggering the parser.
+
+Resampling is a Mitigation
+Resampling with description Balance class frequencies via oversampling or undersampling
+Resampling with long description "Apply SMOTE or random under-sampling to balance the class distribution before training. Inserts a resampling node into the pipeline after the data split and before {operator}. This directly addresses {risk} by equalising the number of samples across target classes."
+
+Data Augmentation is a Mitigation
+Data Augmentation with description Generate synthetic samples for under-represented groups
+Data Augmentation with long description "Create additional synthetic data points for minority classes or under-represented subgroups using interpolation or generative techniques. Addresses {risk} on {operator} without discarding majority-class samples."
+
+Stratified Splitting is a Mitigation
+Stratified Splitting with description Preserve class proportions across train and test splits
+Stratified Splitting with long description "Replace {operator} with stratified splitting (stratify=y) or StratifiedKFold. Each fold or split preserves the original class distribution, preventing {risk} introduced by random splitting. Graph rewrite: add stratify parameter or swap for StratifiedKFold."
+
+Feature Removal is a Mitigation
+Feature Removal with description Drop proxy or sensitive features from the pipeline
+Feature Removal with long description "Remove features identified as proxies for protected attributes upstream of {operator}. This addresses {risk} by preventing the model from learning through correlated sensitive attributes. Requires a feature importance analysis to identify which features to drop."
+
+Reweighting is a Mitigation
+Reweighting with description Assign higher sample weights to under-represented groups
+Reweighting with long description "Compute sample weights inversely proportional to group frequency and pass them to {operator} via sample_weight. Alternatively set class_weight balanced. Reduces {risk} without modifying the training data itself."
+
+Bias Auditing is a Mitigation
+Bias Auditing with description Run fairness metrics on model predictions to quantify bias
+Bias Auditing with long description "Add a post-training evaluation step after {operator} that computes fairness metrics (Disparate Impact, Statistical Parity Difference, Equal Opportunity Difference, Theil Index) using the AIF360 toolkit. This is a diagnostic mitigation that quantifies {risk} but does not automatically fix it."
+
+Adversarial Debiasing is a Mitigation
+Adversarial Debiasing with description Apply post-processing to equalize outcomes across groups
+Adversarial Debiasing with long description "Insert a calibrated equalized-odds post-processor after {operator} that adjusts prediction probabilities to satisfy fairness constraints. Addresses {risk} using CalibratedEqOddsPostprocessing or RejectOptionClassification."
+
+Cross Validation is a Mitigation
+Cross Validation with description Replace hold-out split with k-fold cross validation
+Cross Validation with long description "Replace {operator} with k-fold cross validation (KFold or StratifiedKFold) to prevent {risk}. Each fold trains on k-1 parts and validates on 1, giving a more robust performance estimate. Graph rewrite: replace the split sub-graph with a KFold iteration pattern."
+
+Normalization Check is a Mitigation
+Normalization Check with description Verify scaling is fitted on training data only
+Normalization Check with long description "Ensure that {operator} is fitted exclusively on the training set and then applied (transform) to both train and test. Fitting on the full dataset before splitting causes information leakage and {risk}. The compound operator expansion (fit + transform) enforces this when properly wired."
+
+Outlier Detection is a Mitigation
+Outlier Detection with description Add an outlier detection step before scaling
+Outlier Detection with long description "Insert an outlier detection node (IsolationForest, Z-score filter, or IQR clipping) before {operator}. Outliers disproportionately affect mean- and range-based scalers, causing {risk}. Graph rewrite: insert a filter node upstream of the scaler."
+
+Feature Importance Analysis is a Mitigation
+Feature Importance Analysis with description Inspect feature importances to detect shift or proxy features
+Feature Importance Analysis with long description "Add a feature importance computation step (permutation importance, SHAP values, or tree-based importances) after {operator} to identify which features contribute most to predictions. Useful for detecting {risk}. Results are surfaced for manual review."
+
+Class Weight Balancing is a Mitigation
+Class Weight Balancing with description Set class_weight balanced on the classifier
+Class Weight Balancing with long description "Configure {operator} to automatically adjust weights inversely proportional to class frequencies. Most sklearn estimators support class_weight balanced. Graph rewrite: add a class_weight Parameter node connected to {operator} with value balanced. This addresses {risk}."
+
+Robust Scaling is a Mitigation
+Robust Scaling with description Replace standard scaler with a robust scaler using median and IQR
+Robust Scaling with long description "Swap {operator} with sklearn.preprocessing.RobustScaler, which uses the median and interquartile range instead of mean and standard deviation. This makes scaling resistant to outliers and addresses {risk}. Graph rewrite: replace the Operator node name from {operator} to sklearn.preprocessing.RobustScaler."
+
+Missing Value Analysis is a Mitigation
+Missing Value Analysis with description Audit the imputation strategy for missing-not-at-random patterns
+Missing Value Analysis with long description "Analyse the missing-value pattern to distinguish MCAR, MAR and MNAR. If MNAR is detected, {operator} mean/median strategy may introduce {risk}. Consider model-based imputation (IterativeImputer) or indicator variables instead."
+
+Direct Alternative is a Mitigation
+Direct Alternative with description Replace {operator} with an equivalent operator without {risk}
+Direct Alternative with long description "Replace {operator} with a semantically equivalent operator that performs the same data science task ({task}) but is not linked to {risk} in the knowledge base. Alternatives: {alternatives}."
+
+# ==========================================================================
+# Mitigation → Risk mappings (might_mitigate)
+# ==========================================================================
+
+# ---- Fairness mitigations ----
+Resampling might mitigate Class Imbalance
+Class Weight Balancing might mitigate Class Imbalance
+Data Augmentation might mitigate Class Imbalance
+Stratified Splitting might mitigate Sampling Bias
+Stratified Splitting might mitigate Class Imbalance
+Reweighting might mitigate Group Bias
+Reweighting might mitigate Selection Bias
+Feature Removal might mitigate Proxy Features
+Feature Importance Analysis might mitigate Proxy Features
+Bias Auditing might mitigate Algorithmic Bias
+Bias Auditing might mitigate Historical Bias
+Adversarial Debiasing might mitigate Algorithmic Bias
+Adversarial Debiasing might mitigate Group Bias
+Data Augmentation might mitigate Aggregation Bias
+
+# ---- Robustness mitigations ----
+Normalization Check might mitigate Distribution Shift
+Normalization Check might mitigate Feature Scaling Bias
+Cross Validation might mitigate Data Leakage
+Cross Validation might mitigate Overfitting
+Outlier Detection might mitigate Outlier Bias
+Robust Scaling might mitigate Outlier Bias
+Robust Scaling might mitigate Distribution Shift
+Feature Importance Analysis might mitigate Covariate Shift
+
+# ---- Transparency mitigations ----
+Missing Value Analysis might mitigate Measurement Bias
+Bias Auditing might mitigate Label Noise
+
+# ==========================================================================
+# Rewrite rule metadata — ontological relationships
+#
+# Rule bodies (pattern + transformations) live in ``expdb.rewrites``
+# collection.  The KB declares which parameters each mitigation exposes
+# so that the compiler can resolve signature information.
+#
+# Mitigations without a rule doc in expdb are diagnostic-only (toast).
+# ==========================================================================
+
+# ---- Parameter signatures ----
+Class Weight Balancing has parameter class_weight
+Stratified Splitting has parameter stratify
+Reweighting has parameter class_weight
+class_weight is of type str
+stratify is of type str

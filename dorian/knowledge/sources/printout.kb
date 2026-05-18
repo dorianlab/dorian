@@ -1,0 +1,14 @@
+# ==========================================================================
+# Display Output — dorian.io.printout
+#
+# Platform operator for visualising pipeline outputs.  At expansion time the
+# operator is replaced by a type-detecting Snippet (see printout.py).  The KB
+# entry exists so the generation engine and catalog know about the operator's
+# I/O contract.
+# ==========================================================================
+
+dorian.io.printout is an Operator
+dorian.io.printout implements Display Output
+dorian.io.printout performs Text Generation
+dorian.io.printout performs Conversational AI
+dorian.io.printout implements Display

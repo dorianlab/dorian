@@ -1,0 +1,19 @@
+select trial_id, param_name, param_value from trial_params;
+
+select study_id, study_name from studies;
+select trial_id, value from trial_values where value > 0;
+select trial_id, study_id from trials;
+
+\copy (
+  select
+    s.study_id,
+    s.study_name,
+    t.trial_id,
+    tv.value
+  from studies s
+  join trials t using (study_id)
+  join trial_values tv using (trial_id)
+  where tv.value > 0
+) to 'trials.csv' with (format csv, header true);
+
+\copy ( select trial_id, param_name, param_value from trial_params) to 'trial_params.csv' with (format csv, header true);

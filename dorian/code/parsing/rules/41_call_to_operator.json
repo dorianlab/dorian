@@ -1,0 +1,16 @@
+{
+  "description": "Promote a plain function call (``foo(...)``) to an Operator named after the function identifier. Runs AFTER 40_call_with_attribute_to_operator so the dotted form (``pd.read_csv``) is handled there first; here we catch the bare-name form (``RandomForestClassifier``).",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "call", "language": "python"},
+      "1": {"type": "identifier", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "to_operator", "target": "0", "content_key": "1"},
+    {"type": "delete", "nodes": ["1"]}
+  ]
+}

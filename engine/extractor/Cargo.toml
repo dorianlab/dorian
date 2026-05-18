@@ -1,0 +1,31 @@
+[package]
+name = "extractor"
+description = "Pipeline extractor: source code → DAG via tree-sitter + JSON-spec rewrite rules"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+anyhow       = { workspace = true }
+thiserror    = { workspace = true }
+tracing      = { workspace = true }
+rustc-hash   = { workspace = true }
+regex        = { workspace = true }
+uuid         = { workspace = true, features = ["v4", "v5", "serde"] }
+
+# KB snapshot — chain_method reads per-method port tables (X / y /
+# X_test) from the curated KB so semantic positions land on the
+# canvas instead of the inline canonical defaults.
+optimizer    = { workspace = true }
+
+# tree-sitter — Python parser for the AST → DAG entry path.
+# Pinned to a recent stable release; the bindings split between the
+# core ``tree-sitter`` crate (parser engine) and language-specific
+# crates (grammars). 0.25 is the current ABI line.
+tree-sitter         = "0.25"
+tree-sitter-python  = "0.23"
+
+[lib]
+name = "extractor"
+path = "src/lib.rs"

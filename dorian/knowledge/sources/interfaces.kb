@@ -1,0 +1,183 @@
+Sklearn Estimator is an Interface
+Sklearn Estimator calls 6c4540e3-1c01-5c56-a7a7-808190004ffc
+6c4540e3-1c01-5c56-a7a7-808190004ffc has name __init__
+6c4540e3-1c01-5c56-a7a7-808190004ffc calls 576515e5-99af-5e74-b7fc-9b46f285092d
+576515e5-99af-5e74-b7fc-9b46f285092d has name fit
+576515e5-99af-5e74-b7fc-9b46f285092d calls 5e6b1910-4ad5-5926-9cda-f2ab1adba39a
+5e6b1910-4ad5-5926-9cda-f2ab1adba39a has name predict
+
+Sklearn Estimator has input X; is of type any; has position X
+Sklearn Estimator has input y; is of type any; has position y
+Sklearn Estimator has input X_test; is of type any; has position X_test
+Sklearn Estimator has output predictions; is of type any; has position predictions
+
+576515e5-99af-5e74-b7fc-9b46f285092d has input X; is of type any; has position X
+576515e5-99af-5e74-b7fc-9b46f285092d has input y; is of type any; has position y
+5e6b1910-4ad5-5926-9cda-f2ab1adba39a has input X_test; is of type any; has position X_test
+5e6b1910-4ad5-5926-9cda-f2ab1adba39a has output predictions; is of type any; has position predictions
+
+
+Sklearn Transformer is an Interface
+Sklearn Transformer calls 2b2edb63-a8ed-5ecf-93c6-8ab4120ef0da
+2b2edb63-a8ed-5ecf-93c6-8ab4120ef0da has name __init__
+2b2edb63-a8ed-5ecf-93c6-8ab4120ef0da calls 99e309ad-6b6a-5289-80a2-d14f08d75570
+99e309ad-6b6a-5289-80a2-d14f08d75570 has name fit
+99e309ad-6b6a-5289-80a2-d14f08d75570 calls daba557e-1ada-58e4-96c9-a5ec0c8e4b56
+daba557e-1ada-58e4-96c9-a5ec0c8e4b56 has name transform
+
+Sklearn Transformer has input X; is of type any; has position X
+Sklearn Transformer has input X_test; is of type any; has position X_test
+Sklearn Transformer has output X_transformed; is of type any; has position X_transformed
+Sklearn Transformer has output X_test_transformed; is of type any; has position X_test_transformed
+
+99e309ad-6b6a-5289-80a2-d14f08d75570 has input X; is of type any; has position X
+daba557e-1ada-58e4-96c9-a5ec0c8e4b56 has input X; is of type any; has position X
+daba557e-1ada-58e4-96c9-a5ec0c8e4b56 has output X_transformed; is of type any; has position X_transformed
+
+
+Sklearn Supervised Transformer is an Interface
+Sklearn Supervised Transformer calls 3e4925d4-12fe-5294-8088-a1f2dd1c5455
+3e4925d4-12fe-5294-8088-a1f2dd1c5455 has name __init__
+3e4925d4-12fe-5294-8088-a1f2dd1c5455 calls 9bec160e-1942-5e36-839f-e24dd2a43825
+9bec160e-1942-5e36-839f-e24dd2a43825 has name fit
+9bec160e-1942-5e36-839f-e24dd2a43825 calls c354a017-68b0-5c49-9d94-5987fad30a86
+c354a017-68b0-5c49-9d94-5987fad30a86 has name transform
+
+Sklearn Supervised Transformer has input X; is of type any; has position X
+Sklearn Supervised Transformer has input y; is of type any; has position y
+Sklearn Supervised Transformer has input X_test; is of type any; has position X_test
+Sklearn Supervised Transformer has output X_transformed; is of type any; has position X_transformed
+Sklearn Supervised Transformer has output X_test_transformed; is of type any; has position X_test_transformed
+
+9bec160e-1942-5e36-839f-e24dd2a43825 has input X; is of type any; has position X
+9bec160e-1942-5e36-839f-e24dd2a43825 has input y; is of type any; has position y
+c354a017-68b0-5c49-9d94-5987fad30a86 has input X; is of type any; has position X
+c354a017-68b0-5c49-9d94-5987fad30a86 has output X_transformed; is of type any; has position X_transformed
+7d29f4be-2c01-5e9a-8344-1f6b8e9a0c45 has input X_test; is of type any; has position X_test
+7d29f4be-2c01-5e9a-8344-1f6b8e9a0c45 has output X_test_transformed; is of type any; has position X_test_transformed
+
+
+Function is an Interface
+
+
+Display Output is an Interface
+
+
+LLM Chat Completion is an Interface
+LLM Chat Completion calls 4684506e-e4f9-5980-99a3-1c8f02627cc0
+4684506e-e4f9-5980-99a3-1c8f02627cc0 has name __init__
+4684506e-e4f9-5980-99a3-1c8f02627cc0 calls 9f6c2cbf-35b3-5335-8b8a-82b0987988df
+9f6c2cbf-35b3-5335-8b8a-82b0987988df has name chat.send
+LLM Chat Completion has input messages; is of type list[dict]; has position messages; with default [{"role": "user", "content": "Hello"}]
+LLM Chat Completion has output response; is of type ChatResponse; has position response
+
+9f6c2cbf-35b3-5335-8b8a-82b0987988df has input messages; is of type any; has position messages
+9f6c2cbf-35b3-5335-8b8a-82b0987988df has output response; is of type any; has position response
+
+
+Guardrail is an Interface
+Guardrail calls __init__; calls validate
+Guardrail has parameter device; is of type str; with default cpu; with choices cpu,cuda
+
+
+Model Tracer is an Interface
+Model Tracer calls 4232374c-208c-5f06-8e1e-920857756493
+4232374c-208c-5f06-8e1e-920857756493 has name __init__
+4232374c-208c-5f06-8e1e-920857756493 calls 0de056a9-dc90-5056-8e60-5f44d57ef863
+0de056a9-dc90-5056-8e60-5f44d57ef863 has name fit
+0de056a9-dc90-5056-8e60-5f44d57ef863 calls 03b28af9-d05b-529d-990a-b2937fd2e608
+03b28af9-d05b-529d-990a-b2937fd2e608 has name predict
+03b28af9-d05b-529d-990a-b2937fd2e608 calls f3101b3c-c223-51cc-a4a0-526a5c8051b0
+f3101b3c-c223-51cc-a4a0-526a5c8051b0 has name trace
+
+Model Tracer has input X; is of type any; has position X
+Model Tracer has input y; is of type any; has position y
+Model Tracer has output predictions; is of type any; has position predictions
+Model Tracer has output trace_urls; is of type list; has position trace_urls
+
+0de056a9-dc90-5056-8e60-5f44d57ef863 has input X; is of type any; has position X
+0de056a9-dc90-5056-8e60-5f44d57ef863 has input y; is of type any; has position y
+03b28af9-d05b-529d-990a-b2937fd2e608 has input X; is of type any; has position X
+03b28af9-d05b-529d-990a-b2937fd2e608 has output predictions; is of type any; has position predictions
+f3101b3c-c223-51cc-a4a0-526a5c8051b0 has output trace_urls; is of type any; has position trace_urls
+
+
+Model Agnostic Tracer is an Interface
+Model Agnostic Tracer calls 651d8fa8-a2e7-577e-92b4-05bf9e1790d5
+651d8fa8-a2e7-577e-92b4-05bf9e1790d5 has name __init__
+651d8fa8-a2e7-577e-92b4-05bf9e1790d5 calls 7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e
+7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e has name predict
+7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e calls 2adad7b5-4490-5f6a-9b3c-538ab083b8ba
+2adad7b5-4490-5f6a-9b3c-538ab083b8ba has name trace
+
+Model Agnostic Tracer has input model; is of type any; has position model
+Model Agnostic Tracer has input X_train; is of type any; has position X_train
+Model Agnostic Tracer has input X; is of type any; has position X
+Model Agnostic Tracer has output trace_urls; is of type list; has position trace_urls
+
+7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e has input model; is of type any; has position model
+7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e has input X_train; is of type any; has position X_train
+7ed3205a-aaf1-5036-8e9e-ffc44f4e1b2e has input X; is of type any; has position X
+2adad7b5-4490-5f6a-9b3c-538ab083b8ba has output trace_urls; is of type any; has position trace_urls
+
+
+Holdout Evaluation is an Interface
+Holdout Evaluation calls ea4e5363-a378-55fd-8b1f-44f660e1afb0
+ea4e5363-a378-55fd-8b1f-44f660e1afb0 has name __init__
+ea4e5363-a378-55fd-8b1f-44f660e1afb0 calls 28813c67-0806-58ed-9999-13878aabdfd8
+28813c67-0806-58ed-9999-13878aabdfd8 has name split
+28813c67-0806-58ed-9999-13878aabdfd8 calls beb58635-886b-58de-b5bb-df2eb2aa7191
+beb58635-886b-58de-b5bb-df2eb2aa7191 has name execute
+beb58635-886b-58de-b5bb-df2eb2aa7191 calls d1a0f871-4b08-5147-a693-8f4c8fac8a94
+d1a0f871-4b08-5147-a693-8f4c8fac8a94 has name evaluate
+
+Holdout Evaluation has input dataset; is of type any; has position dataset
+Holdout Evaluation has input pipeline; is of type any; has position pipeline
+Holdout Evaluation has output metrics; is of type dict; has position metrics
+
+28813c67-0806-58ed-9999-13878aabdfd8 has input dataset; is of type any; has position dataset
+28813c67-0806-58ed-9999-13878aabdfd8 has output X_train; is of type any; has position X_train
+28813c67-0806-58ed-9999-13878aabdfd8 has output X_test; is of type any; has position X_test
+28813c67-0806-58ed-9999-13878aabdfd8 has output y_train; is of type any; has position y_train
+28813c67-0806-58ed-9999-13878aabdfd8 has output y_test; is of type any; has position y_test
+
+beb58635-886b-58de-b5bb-df2eb2aa7191 has input pipeline; is of type any; has position pipeline
+beb58635-886b-58de-b5bb-df2eb2aa7191 has input X_train; is of type any; has position X_train
+beb58635-886b-58de-b5bb-df2eb2aa7191 has input y_train; is of type any; has position y_train
+beb58635-886b-58de-b5bb-df2eb2aa7191 has input X_test; is of type any; has position X_test
+beb58635-886b-58de-b5bb-df2eb2aa7191 has output y_pred; is of type any; has position y_pred
+
+d1a0f871-4b08-5147-a693-8f4c8fac8a94 has input y_test; is of type any; has position y_test
+d1a0f871-4b08-5147-a693-8f4c8fac8a94 has input y_pred; is of type any; has position y_pred
+d1a0f871-4b08-5147-a693-8f4c8fac8a94 has output metrics; is of type any; has position metrics
+
+
+KFold Evaluation is an Interface
+KFold Evaluation calls 838eadf2-207f-5d11-996c-5856c9ce76e0
+838eadf2-207f-5d11-996c-5856c9ce76e0 has name __init__
+838eadf2-207f-5d11-996c-5856c9ce76e0 calls 343b4264-724c-527a-8f69-0455f309d238
+343b4264-724c-527a-8f69-0455f309d238 has name fold
+343b4264-724c-527a-8f69-0455f309d238 calls d4b4e77f-ad1a-56df-b692-ecaeed8240b2
+d4b4e77f-ad1a-56df-b692-ecaeed8240b2 has name execute
+d4b4e77f-ad1a-56df-b692-ecaeed8240b2 calls 0f8e66b5-3410-5aa9-ace7-6e35aef452ac
+0f8e66b5-3410-5aa9-ace7-6e35aef452ac has name evaluate
+0f8e66b5-3410-5aa9-ace7-6e35aef452ac calls 42e7a00c-c7ca-5bf4-b735-3adb99be7a4f
+42e7a00c-c7ca-5bf4-b735-3adb99be7a4f has name aggregate
+
+KFold Evaluation has input dataset; is of type any; has position dataset
+KFold Evaluation has input pipeline; is of type any; has position pipeline
+KFold Evaluation has output metrics; is of type dict; has position metrics
+
+343b4264-724c-527a-8f69-0455f309d238 has input dataset; is of type any; has position dataset
+343b4264-724c-527a-8f69-0455f309d238 has output folds; is of type any; has position folds
+
+d4b4e77f-ad1a-56df-b692-ecaeed8240b2 has input pipeline; is of type any; has position pipeline
+d4b4e77f-ad1a-56df-b692-ecaeed8240b2 has input folds; is of type any; has position folds
+d4b4e77f-ad1a-56df-b692-ecaeed8240b2 has output fold_predictions; is of type any; has position fold_predictions
+
+0f8e66b5-3410-5aa9-ace7-6e35aef452ac has input folds; is of type any; has position folds
+0f8e66b5-3410-5aa9-ace7-6e35aef452ac has input fold_predictions; is of type any; has position fold_predictions
+0f8e66b5-3410-5aa9-ace7-6e35aef452ac has output fold_metrics; is of type any; has position fold_metrics
+
+42e7a00c-c7ca-5bf4-b735-3adb99be7a4f has input fold_metrics; is of type any; has position fold_metrics
+42e7a00c-c7ca-5bf4-b735-3adb99be7a4f has output metrics; is of type any; has position metrics

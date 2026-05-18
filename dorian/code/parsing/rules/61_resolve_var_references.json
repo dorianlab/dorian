@@ -1,0 +1,11 @@
+{
+  "description": "Single-fire global pass: rewire every identifier-use (no incoming producer edge) to its producer. Runs AFTER 50_chain_method_shortcuts so method renames are applied first; the resolve pass then sees the bare method names and picks output=1 for method-shortcut producers.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "module", "language": "python"}
+    }
+  },
+  "transformations": [
+    {"type": "resolve_var_references"}
+  ]
+}

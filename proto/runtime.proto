@@ -1,0 +1,141 @@
+syntax = "proto3";
+package dorian.runtime;
+
+option go_package = "dorian/gateway/internal/pb/runtime";
+
+import "graph.proto";
+
+// ---------------------------------------------------------------------------
+// Runtime dispatch protocol.
+//
+// This is the contract between the Dorian engine and ANY execution runtime
+// (Python subprocess, WASM sandbox, container, API endpoint). The engine
+// dispatches node execution via SubmitNode and receives results via
+// NodeResult. All runtimes speak the same protocol.
+// ---------------------------------------------------------------------------
+
+// What kind of runtime a node requires.
+enum RuntimeKind {
+  RUNTIME_KIND_UNSPECIFIED = 0;
+  RUNTIME_KIND_PYTHON      = 1; // Python subprocess pool
+  RUNTIME_KIND_API         = 2; // HTTP/gRPC external service (LLM, etc.)
+  RUNTIME_KIND_WASM        = 3; // Wasmtime/Wasmer sandbox
+  RUNTIME_KIND_CONTAINER   = 4; // Container-based execution
+  RUNTIME_KIND_ENGINE      = 5; // Engine-native (parameter resolution, etc.)
+}
+
+// ---------------------------------------------------------------------------
+// Node submission
+// ---------------------------------------------------------------------------
+
+message SubmitNode {
+  string task_id  = 1; // unique per-submission
+  string run_id   = 2; // pipeline run context
+  string node_id  = 3; // node within the graph
+
+  RuntimeKind target_runtime = 4;
+
+  // The node payload to execute.
+  dorian.graph.ProcessNodePayload payload = 5;
+
+  // Input data references (from upstream node results).
+  repeated InputRef inputs = 6;
+
+  // Execution context (session, vault refs, etc.).
+  map<string, string> context = 7;
+
+  // Timeout for this node (0 = use runtime default).
+  double timeout_seconds = 8;
+}
+
+message InputRef {
+  string source_node_id = 1;
+  int32 output_port     = 2; // which output of the source node
+  int32 input_position  = 3; // positional arg slot on target
+  string input_keyword  = 4; // keyword arg name (if applicable)
+
+  // How to access the data: inline bytes or a reference to shared storage.
+  oneof data {
+    bytes  inline_data  = 5; // small payloads (< 1MB)
+    string data_ref     = 6; // reference to shared storage (mmap, Arrow IPC, etc.)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Node result
+// ---------------------------------------------------------------------------
+
+enum NodeResultStatus {
+  NODE_RESULT_STATUS_UNSPECIFIED = 0;
+  NODE_RESULT_STATUS_SUCCESS     = 1;
+  NODE_RESULT_STATUS_FAILED      = 2;
+  NODE_RESULT_STATUS_CANCELLED   = 3;
+  NODE_RESULT_STATUS_TIMEOUT     = 4;
+}
+
+message NodeResult {
+  string task_id = 1;
+  string node_id = 2;
+  NodeResultStatus status = 3;
+
+  // Result data (per output port).
+  repeated OutputData outputs = 4;
+
+  // Error info (if status != SUCCESS).
+  optional string error_message = 5;
+  optional string error_traceback = 6;
+
+  // Timing.
+  double duration_seconds = 7;
+}
+
+message OutputData {
+  int32 port = 1;
+  oneof data {
+    bytes  inline_data = 2; // small results
+    string data_ref    = 3; // shared storage reference
+  }
+  string type_hint = 4; // e.g. "DataFrame", "ndarray", "str"
+}
+
+// ---------------------------------------------------------------------------
+// Runtime health and capabilities
+// ---------------------------------------------------------------------------
+
+message RuntimeHealth {
+  RuntimeKind kind = 1;
+  bool healthy = 2;
+  int32 current_workers  = 3;
+  int32 max_workers      = 4;
+  int32 queue_depth      = 5;
+  int32 queue_capacity   = 6;
+  int32 inflight_tasks   = 7;
+  double cpu_percent     = 8;
+  double memory_percent  = 9;
+}
+
+message RuntimeCapabilities {
+  RuntimeKind kind = 1;
+  repeated string supported_languages = 2; // e.g. ["python"]
+  repeated string supported_operators = 3; // e.g. ["sklearn.*", "pandas.*"]
+  bool supports_cancellation = 4;
+  bool supports_streaming    = 5;
+  int32 max_concurrent_tasks = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Backpressure signals
+// ---------------------------------------------------------------------------
+
+enum BackpressureAction {
+  BACKPRESSURE_ACTION_UNSPECIFIED = 0;
+  BACKPRESSURE_ACTION_ACCEPT     = 1; // submission accepted
+  BACKPRESSURE_ACTION_THROTTLE   = 2; // slow down submissions
+  BACKPRESSURE_ACTION_REJECT     = 3; // queue full, retry later
+}
+
+message SubmitResponse {
+  string task_id = 1;
+  BackpressureAction action = 2;
+  optional double retry_after_seconds = 3; // hint for THROTTLE/REJECT
+}

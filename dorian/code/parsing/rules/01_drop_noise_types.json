@@ -1,0 +1,14 @@
+{
+  "description": "Drop tree-sitter noise tokens — comments and string-fragment children. Mirrors the python ``types_to_delete`` list verbatim. Does NOT delete container types (``call``, ``attribute``, ``argument_list``, …) — those are required by the promotion rules below.",
+  "pattern": {
+    "nodes": {
+      "0": {
+        "type": "^(?:comment|string_start|string_end|string_content|from|as)$",
+        "language": "python"
+      }
+    }
+  },
+  "transformations": [
+    {"type": "delete", "nodes": ["0"], "mode": "isolated"}
+  ]
+}

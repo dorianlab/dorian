@@ -1,0 +1,71 @@
+# =============================================================================
+# Dorian Rust Engine — Multi-stage Docker build
+# =============================================================================
+#
+# Builds the Rust engine binary (gRPC server on :50051).
+#
+# Usage:
+#   docker build -f Dockerfile.engine -t dorian-engine:local .
+#   docker run -p 50051:50051 dorian-engine:local
+#
+# Build context must be the repo root (.) so both engine/ and proto/ are
+# accessible for protobuf compilation.
+
+# ---------------------------------------------------------------------------
+# Stage 1: Chef — dependency caching layer
+# ---------------------------------------------------------------------------
+FROM docker.io/library/rust:1.95-alpine AS chef
+
+RUN apk add --no-cache musl-dev protobuf-dev protobuf
+RUN for i in 1 2 3; do cargo install cargo-chef --locked && break || sleep 5; done
+
+WORKDIR /build
+
+# ---------------------------------------------------------------------------
+# Stage 2: Planner — compute recipe for dependency caching
+# ---------------------------------------------------------------------------
+FROM chef AS planner
+
+# Copy workspace manifests and proto files.
+COPY engine/ engine/
+COPY proto/ proto/
+
+WORKDIR /build/engine
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ---------------------------------------------------------------------------
+# Stage 3: Builder — compile dependencies, then the engine
+# ---------------------------------------------------------------------------
+FROM chef AS builder
+
+# Cache dependencies (only re-runs when Cargo.toml/lock changes).
+COPY --from=planner /build/engine/recipe.json /build/engine/recipe.json
+COPY proto/ proto/
+WORKDIR /build/engine
+RUN cargo chef cook --release --recipe-path recipe.json -p engine 2>/dev/null || true
+
+# Copy full source and build.
+COPY engine/ /build/engine/
+COPY proto/ /build/proto/
+WORKDIR /build/engine
+RUN for i in 1 2 3; do cargo build --release -p engine && break || sleep 10; done
+
+# ---------------------------------------------------------------------------
+# Stage 4: Runtime — minimal image with just the binary
+# ---------------------------------------------------------------------------
+FROM docker.io/library/alpine:3.21 AS runtime
+
+RUN apk add --no-cache ca-certificates netcat-openbsd
+RUN adduser -D -s /bin/false dorian
+
+COPY --from=builder /build/engine/target/release/engine /usr/local/bin/dorian-engine
+RUN chmod +x /usr/local/bin/dorian-engine
+
+USER dorian
+
+ENV DORIAN_ENGINE_PORT=50051
+ENV RUST_LOG=info
+
+EXPOSE 50051
+
+ENTRYPOINT ["dorian-engine"]

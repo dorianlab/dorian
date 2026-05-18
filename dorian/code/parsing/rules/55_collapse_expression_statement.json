@@ -1,0 +1,15 @@
+{
+  "description": "Collapse a bare-statement wrapper: ``expression_statement`` whose only child is an Operator (or a leftover ``call`` Node that didn't make it to Operator promotion). Without this rule, statements like ``clf.fit(X, y)`` and ``print(score)`` leave two stacked nodes — an expression_statement pointing at the Operator. Then chain_method_shortcuts (60) bumps the expression_statement → Operator edge's position and creates a spurious ``expression_statement → fit (pos=\"X\")`` edge that shadows the real arg wiring. Mirrors python's expression_statement collapse.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "expression_statement", "language": "python"},
+      "1": {"kind": "^(operator|node)$", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "delete", "nodes": ["0"], "mode": "isolated"}
+  ]
+}

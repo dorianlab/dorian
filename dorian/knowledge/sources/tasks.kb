@@ -1,0 +1,591 @@
+# Data Science Task is a Core Concept
+Data Preprocessing is subclass of Data Science Task
+Supervised Learning is subclass of Data Science Task
+Unsupervised Learning is subclass of Data Science Task
+# TODO: binary vs multiclass classification
+Classification is subclass of Supervised Learning
+Regression is subclass of Supervised Learning
+Clustering is subclass of Unsupervised Learning
+Data Collection is subclass of Data Science Task
+Data Loading is subclass of Data Science Task
+Data Cleaning is subclass of Data Preprocessing
+Data Augmentation is subclass of Data Preprocessing
+Data Integration is subclass of Data Preprocessing
+Data Exploration is subclass of Data Science Task
+Data Visualization is subclass of Data Science Task
+Statistical Analysis is subclass of Data Science Task
+Natural Language Processing is subclass of Data Science Task
+Image Processing is subclass of Data Science Task
+Video Processing is subclass of Data Science Task
+Time Series Analysis is subclass of Data Science Task
+Anomaly Detection is subclass of Data Science Task
+Fraud Detection is subclass of Anomaly Detection
+Network Intrusion Detection is subclass of Anomaly Detection
+Model Selection is subclass of Data Science Task
+Model Evaluation is subclass of Data Science Task
+Model Deployment is subclass of Data Science Task
+
+TrainTestSplit is subclass of Model Selection
+KFold is subclass of Model Selection
+StratifiedKFold is subclass of Model Selection
+Data Normalization is subclass of Data Preprocessing
+MinMaxScaler is subclass of Data Normalization
+StandardScaler is subclass of Data Normalization
+Data Encoding is subclass of Data Preprocessing
+OneHotEncoder is subclass of Data Encoding
+LabelEncoder is subclass of Data Encoding
+OrdinalEncoder is subclass of Data Encoding
+SVM is subclass of Classification
+
+Data Ingestion is subclass of Data Collection
+Data Scraping is subclass of Data Collection
+Data Warehousing is subclass of Data Collection
+Batch Data Loading is subclass of Data Loading
+Streaming Data Loading is subclass of Data Loading
+Missing Data Imputation is subclass of Data Cleaning
+Data Transformation is subclass of Data Preprocessing
+Data Normalization is subclass of Data Transformation
+Data Standardization is subclass of Data Transformation
+Feature Engineering is subclass of Data Preprocessing
+Feature Selection is subclass of Feature Engineering
+Feature Extraction is subclass of Feature Engineering
+Exploratory Data Analysis is subclass of Data Exploration
+Data Profiling is subclass of Data Exploration
+Interactive Visualization is subclass of Data Visualization
+Dashboarding is subclass of Data Visualization
+Hypothesis Testing is subclass of Statistical Analysis
+Statistical Modeling is subclass of Statistical Analysis
+Bayesian Inference is subclass of Statistical Analysis
+Binary Classification is subclass of Classification
+Multiclass Classification is subclass of Classification
+Multi-label Classification is subclass of Classification
+Linear Regression is subclass of Regression
+Polynomial Regression is subclass of Regression
+Logistic Regression is subclass of Regression
+Time Series Forecasting is subclass of Regression
+K-Means Clustering is subclass of Clustering
+Hierarchical Clustering is subclass of Clustering
+DBSCAN is subclass of Clustering
+Dimensionality Reduction is subclass of Unsupervised Learning
+Principal Component Analysis is subclass of Dimensionality Reduction
+t-SNE is subclass of Dimensionality Reduction
+Autoencoder-based Reduction is subclass of Dimensionality Reduction
+Association Rule Mining is subclass of Unsupervised Learning
+Outlier Detection is subclass of Anomaly Detection
+Cross-Validation is subclass of Model Selection
+Hyperparameter Tuning is subclass of Model Selection
+Ensemble Methods is subclass of Model Selection
+Confusion Matrix Analysis is subclass of Model Evaluation
+ROC Analysis is subclass of Model Evaluation
+Precision and Recall Analysis is subclass of Model Evaluation
+Model Tracing is subclass of Model Evaluation
+Model Explainability is subclass of Model Tracing
+Model Interpretability is subclass of Model Tracing
+
+Model Serving is subclass of Model Deployment
+Model Monitoring is subclass of Model Deployment
+Model Versioning is subclass of Model Deployment
+A/B Testing is subclass of Model Deployment
+Text Mining is subclass of Natural Language Processing
+Sentiment Analysis is subclass of Natural Language Processing
+Named Entity Recognition is subclass of Natural Language Processing
+Topic Modeling is subclass of Natural Language Processing
+Machine Translation is subclass of Natural Language Processing
+Computer Vision is subclass of Image Processing
+Object Detection is subclass of Computer Vision
+Image Segmentation is subclass of Computer Vision
+Facial Recognition is subclass of Computer Vision
+Video Analytics is subclass of Video Processing
+Action Recognition is subclass of Video Processing
+Video Summarization is subclass of Video Processing
+Trend Analysis is subclass of Time Series Analysis
+Seasonality Analysis is subclass of Time Series Analysis
+Change Point Detection is subclass of Time Series Analysis
+
+Generative AI is subclass of Data Science Task
+Text Generation is subclass of Generative AI
+Conversational AI is subclass of Generative AI
+Code Generation is subclass of Generative AI
+Summarization is subclass of Generative AI
+Question Answering is subclass of Generative AI
+Text Classification with LLM is subclass of Generative AI
+Structured Extraction is subclass of Generative AI
+
+Data Privacy, Ethics & Fairness is subclass of Data Science Task
+Bias Detection & Fairness Evaluation is subclass of Data Privacy, Ethics & Fairness
+Data Anonymization & Privacy Preservation is subclass of Data Privacy, Ethics & Fairness
+Ethical Review & Compliance is subclass of Data Privacy, Ethics & Fairness
+Infrastructure & Automation is subclass of Data Science Task
+ETL & Data Pipeline Orchestration is subclass of Infrastructure & Automation
+Cloud Infrastructure & Big Data Processing is subclass of Infrastructure & Automation
+CI/CD for Data Science Projects is subclass of Infrastructure & Automation
+
+GroupShuffleSplit is subclass of Model Selection
+LeaveOneGroupOut is subclass of Model Selection
+LeaveOneOut is subclass of Model Selection
+LeavePGroupsOut is subclass of Model Selection
+LeavePOut is subclass of Model Selection
+PredefinedSplit is subclass of Model Selection
+RepeatedKFold is subclass of Model Selection
+RepeatedStratifiedKFold is subclass of Model Selection
+ShuffleSplit is subclass of Model Selection
+StratifiedGroupKFold is subclass of Model Selection
+
+StratifiedShuffleSplit is subclass of Model Selection
+TimeSeriesSplit is subclass of Model Selection
+check_cv is subclass of Model Selection
+train_test_split is subclass of Model Selection
+GridSearchCV is subclass of Model Selection
+HalvingGridSearchCV is subclass of Model Selection
+HalvingRandomSearchCV is subclass of Model Selection
+ParameterGrid is subclass of Model Selection
+ParameterSampler is subclass of Model Selection
+RandomizedSearchCV is subclass of Model Selection
+FixedThresholdClassifier is subclass of Model Selection
+TunedThresholdClassifierCV is subclass of Model Selection
+cross_val_predict is subclass of Model Selection
+cross_val_score is subclass of Model Selection
+cross_validate is subclass of Model Selection
+learning_curve is subclass of Model Selection
+permutation_test_score is subclass of Model Selection
+validation_curve is subclass of Model Selection
+LearningCurveDisplay is subclass of Model Selection
+ValidationCurveDisplay is subclass of Model Selection
+
+# doc-bias: ml ontology class hierarchy
+
+# Artificial_Neural_Network is subclass of Algorithms
+# Association_Rule_Learning is subclass of Algorithms
+# Bayes is subclass of Algorithms
+# Clustering is subclass of Algorithms
+# Decision_Tree is subclass of Algorithms
+# Deep_Learning is subclass of Algorithms
+# Dimensionality_Reduction is subclass of Algorithms
+# Ensemble is subclass of Algorithms
+# Image-Based is subclass of Algorithms
+# Instance-Based is subclass of Algorithms
+# Learning_Vector_Quantization is subclass of Algorithms
+# Least_Mean_Squares is subclass of Algorithms
+# Linear_Models is subclass of Algorithms
+# Markov_Process_Models is subclass of Algorithms
+# Max_Match is subclass of Algorithms
+# Monte_Carlo_Simulation is subclass of Algorithms
+# Muti-Task_Learning is subclass of Algorithms
+# Natural_Language_Processing is subclass of Algorithms
+# Quantum_Machine_Learning is subclass of Algorithms
+# Regularization is subclass of Algorithms
+# Support_Vector_Machine is subclass of Algorithms
+# t-Distributed_Stochastic_Neighbor_Embedding is subclass of Algorithms
+# Widrow-Hoff is subclass of Algorithms
+# 2D_Plotting_Capabilities is subclass of Applications
+# Algebraic_Equations is subclass of Applications
+# Approximate_nearest_neighbors_in_TSNE is subclass of Applications
+# Audio_Processing is subclass of Applications
+# Automated_Theorem_Proving is subclass of Applications
+# Autonomous_Driving is subclass of Applications
+# Brain_Scans is subclass of Applications
+# Cluster_Applications is subclass of Applications
+# Column_Transformer_with_Heterogeneous_Data_Sources is subclass of Applications
+# Combined_Algorithm_Selection_and_Hyperparameter_optimization is subclass of Applications
+# Computer_Vision is subclass of Applications
+# Covariance_Estimation is subclass of Applications
+# Cross-Validation is subclass of Applications
+# Cross_Decomposition_Methods is subclass of Applications
+# Engenvalues is subclass of Applications
+# Feature_Extraction is subclass of Applications
+# Functions is subclass of Applications
+# Gaussian_Distribution is subclass of Applications
+# Gene_Data_Analisys is subclass of Applications
+# Genetic_Algorithms is subclass of Applications
+# Image_Classification is subclass of Applications
+# Image_Processing is subclass of Applications
+# Integration is subclass of Applications
+# Interpolation_And_Splines is subclass of Applications
+# k-dimensional_Trees is subclass of Applications
+# Language_Translator is subclass of Applications
+# Libsvm_GUI is subclass of Applications
+# Linear_Algebra is subclass of Applications
+# Multilabel_Classification is subclass of Applications
+# Multilayer_Perceptron is subclass of Applications
+# Noise_Foiltering is subclass of Applications
+# Non-linear_technique is subclass of Applications
+# OAS_Estimator is subclass of Applications
+# Optimization is subclass of Applications
+# Ordinary_Differential_Equations is subclass of Applications
+# Outlier_Detection is subclass of Applications
+# Parallel_Programming is subclass of Applications
+# Partial_Dependence_Plots is subclass of Applications
+# Personal_Assistant is subclass of Applications
+# Probabilistic_Models is subclass of Applications
+# Probability_Calibration is subclass of Applications
+# Regression is subclass of Applications
+# Sequence-to-sequence_Models is subclass of Applications
+# Signal_Processing is subclass of Applications
+# Sparce_Matrices is subclass of Applications
+# Speech is subclass of Applications
+# Stock_Market_Prediction is subclass of Applications
+# Text_Classification is subclass of Applications
+# Text_Summarization is subclass of Applications
+# The_Transformers is subclass of Applications
+# Visualization is subclass of Applications
+# Backpropagation is subclass of Artificial_Neural_Network
+# Hopfield_Network is subclass of Artificial_Neural_Network
+# Radial_Basis_Function_Network is subclass of Artificial_Neural_Network
+# self-organizing_feature_map is subclass of Artificial_Neural_Network
+# Self-organizing_map is subclass of Artificial_Neural_Network
+# Stochastic_Gradient_Descent is subclass of Artificial_Neural_Network
+# Apriori is subclass of Association_Rule_Learning
+# Eclat is subclass of Association_Rule_Learning
+# Averaged_One-Dependencies_Estimators is subclass of Bayes
+# Bayesian_Belief_Network is subclass of Bayes
+# Bayesian_Network is subclass of Bayes
+# Naive_Bayes is subclass of Bayes
+# Agglomerative_Clustering_on_a_2D_embedding_of_digits is subclass of Cluster_Applications
+# Agglomerative_clustering_with_and_without_structure is subclass of Cluster_Applications
+# Agglomerative_clustering_with_different_metrics is subclass of Cluster_Applications
+# Balanced_Iterative_Reducing_and_Clustering_using_Hierarchies is subclass of Cluster_Applications
+# Hierarchical_clustering:_structured_vs_unstructured_ward is subclass of Cluster_Applications
+# Hierarchical_Clustering_Dendrogram is subclass of Cluster_Applications
+# Inductive_Clustering is subclass of Cluster_Applications
+# MiniBatchKMeans is subclass of Cluster_Applications
+# Structured_Ward_hierarchical_clustering_on_an_image_of_coins is subclass of Cluster_Applications
+# Toy_Datasets is subclass of Cluster_Applications
+# Density-Based_Spatial_Clustering_of_Applications_with_Noise is subclass of Clustering
+# Expectation_Maximisation is subclass of Clustering
+# Hierarchical_Clustering is subclass of Clustering
+# Hierarchical_Density-Based_Spatial_Clustering_of_Applications_with_Noise is subclass of Clustering
+# k-Means is subclass of Clustering
+# k-Medians is subclass of Clustering
+# Mean-Shift is subclass of Clustering
+# MiniBatchMeans is subclass of Clustering
+# Ordering_points_to_identify_the_clustering_structure is subclass of Clustering
+# Spectral_Bi-Clustering is subclass of Clustering
+# Spectral_Co-Clustering is subclass of Clustering
+# Empirical is subclass of Covariance_Estimation
+# l1-penalized is subclass of Covariance_Estimation
+# LedoitWolf_Estimator is subclass of Covariance_Estimation
+# Mahalanobis_distances is subclass of Covariance_Estimation
+# Minimum_Covariante_Determinant is subclass of Covariance_Estimation
+# OAS is subclass of Covariance_Estimation
+# Robust is subclass of Covariance_Estimation
+# Shrinkage is subclass of Covariance_Estimation
+# Sparse_inverse is subclass of Covariance_Estimation
+# CV_Estimator is subclass of Cross-Validation
+# CV_Generator is subclass of Cross-Validation
+# CV_Splitter is subclass of Cross-Validation
+# Structured is subclass of Data_Base
+# Unstructured is subclass of Data_Base
+# C4.5 is subclass of Decision_Tree
+# C5 is subclass of Decision_Tree
+# Chi-squared_Automatic_Interaction_Detection is subclass of Decision_Tree
+# Classification is subclass of Decision_Tree
+# Classification_And_Regression_Tree is subclass of Decision_Tree
+# Conditional_Decision_Tree is subclass of Decision_Tree
+# Decision_Stump is subclass of Decision_Tree
+# Iterative_Dichotomiser_3 is subclass of Decision_Tree
+# M5 is subclass of Decision_Tree
+# Deep_Neural_Networks is subclass of Deep_Learning
+# Global_Vectors_For_Word_Representation is subclass of Deep_Learning
+# Word2Vec is subclass of Deep_Learning
+# Convolutional_Neural_Networks is subclass of Deep_Neural_Networks
+# Deep_Belief_Networks is subclass of Deep_Neural_Networks
+# Deep_Boltzmann_Machine is subclass of Deep_Neural_Networks
+# Long_Short-Term_Memory_Networks is subclass of Deep_Neural_Networks
+# Recurrent_Neural_Networks is subclass of Deep_Neural_Networks
+# Stacked_Auto-Encoders is subclass of Deep_Neural_Networks
+# Data_Base is subclass of Dependencies
+# Hardware is subclass of Dependencies
+# Operating_System is subclass of Dependencies
+# Software is subclass of Dependencies
+# ANN is subclass of Dictionary
+# ATP is subclass of Dictionary
+# Bagging is subclass of Dictionary
+# BERT is subclass of Dictionary
+# BIRCH is subclass of Dictionary
+# Blending is subclass of Dictionary
+# CART is subclass of Dictionary
+# CASH is subclass of Dictionary
+# CHAID is subclass of Dictionary
+# CNN is subclass of Dictionary
+# CURL is subclass of Dictionary
+# CV is subclass of Dictionary
+# DBM is subclass of Dictionary
+# DBN is subclass of Dictionary
+# DBSCAN is subclass of Dictionary
+# FDA is subclass of Dictionary
+# GBDT is subclass of Dictionary
+# GBM is subclass of Dictionary
+# GBRT is subclass of Dictionary
+# GloVe is subclass of Dictionary
+# GPR is subclass of Dictionary
+# GPU is subclass of Dictionary
+# HDBSCAN is subclass of Dictionary
+# HMM is subclass of Dictionary
+# ID3 is subclass of Dictionary
+# kNN is subclass of Dictionary
+# LARS is subclass of Dictionary
+# LDA is subclass of Dictionary
+# LMS is subclass of Dictionary
+# LOESS is subclass of Dictionary
+# LSA is subclass of Dictionary
+# LSTM is subclass of Dictionary
+# LVQ is subclass of Dictionary
+# LWL is subclass of Dictionary
+# Markov_Model is subclass of Dictionary
+# Markov_Network is subclass of Dictionary
+# MARS is subclass of Dictionary
+# MCD is subclass of Dictionary
+# MDA is subclass of Dictionary
+# MDS is subclass of Dictionary
+# MLP is subclass of Dictionary
+# NISQ is subclass of Dictionary
+# NLG is subclass of Dictionary
+# NLP is subclass of Dictionary
+# NLU is subclass of Dictionary
+# NUBIA is subclass of Dictionary
+# ODE is subclass of Dictionary
+# OLSR is subclass of Dictionary
+# OPTICS is subclass of Dictionary
+# PCA is subclass of Dictionary
+# PCR is subclass of Dictionary
+# PLSR is subclass of Dictionary
+# POMDP is subclass of Dictionary
+# QDA is subclass of Dictionary
+# RNN is subclass of Dictionary
+# SOFM is subclass of Dictionary
+# SOM is subclass of Dictionary
+# SON is subclass of Dictionary
+# Stacking is subclass of Dictionary
+# SVM is subclass of Dictionary
+# t-SNE is subclass of Dictionary
+# TD is subclass of Dictionary
+# TMM is subclass of Dictionary
+# Flexible_Discriminant_Analysis is subclass of Dimensionality_Reduction
+# Linear_Discriminant_Analysis is subclass of Dimensionality_Reduction
+# Mixture_Discriminant_Analysis is subclass of Dimensionality_Reduction
+# Multidimensional_Scaling is subclass of Dimensionality_Reduction
+# Partial_Least_Squares_Regression is subclass of Dimensionality_Reduction
+# Principal_Component_Analysis is subclass of Dimensionality_Reduction
+# Principal_Component_Regression is subclass of Dimensionality_Reduction
+# Project_Pursuit is subclass of Dimensionality_Reduction
+# Quadratic_Discriminant_Analysis is subclass of Dimensionality_Reduction
+# Sammon_Mapping is subclass of Dimensionality_Reduction
+# AdaBoost is subclass of Ensemble
+# Bagging_meta-estimator is subclass of Ensemble
+# Boosting is subclass of Ensemble
+# Bootstrapped_Agregation is subclass of Ensemble
+# Forests_of_randomized_trees is subclass of Ensemble
+# Gradient_Boosting_Machine is subclass of Ensemble
+# Gradient_Tree_Boosting is subclass of Ensemble
+# Gradiente_Bosted_Decision_Trees is subclass of Ensemble
+# Histogram_Based_Gradient_Boosting is subclass of Ensemble
+# Random_Forest is subclass of Ensemble
+# Stacked_Generalization is subclass of Ensemble
+# Voting_Classifier is subclass of Ensemble
+# Voting_Regressor is subclass of Ensemble
+# Weighted_Average is subclass of Ensemble
+# Auto-sklearn is subclass of Frameworks
+# Auto-WEKA is subclass of Frameworks
+# Caffe is subclass of Frameworks
+# CNTK is subclass of Frameworks
+# JAX is subclass of Frameworks
+# Keras is subclass of Frameworks
+# LightGBM is subclass of Frameworks
+# Matplotlib is subclass of Frameworks
+# MxNet is subclass of Frameworks
+# Network-X is subclass of Frameworks
+# Neural_Based_Interchangeability_Assessor_for_Text_Generation is subclass of Frameworks
+# NumPy is subclass of Frameworks
+# Others is subclass of Frameworks
+# Paddle_Paddle is subclass of Frameworks
+# Pandas is subclass of Frameworks
+# Prolog is subclass of Frameworks
+# PyCaret is subclass of Frameworks
+# Python is subclass of Frameworks
+# PyTorch is subclass of Frameworks
+# scikit-learn is subclass of Frameworks
+# SciPy is subclass of Frameworks
+# spaCy is subclass of Frameworks
+# SymPy is subclass of Frameworks
+# T-NGL is subclass of Frameworks
+# TensorFlow is subclass of Frameworks
+# TensorFlow_Quantum is subclass of Frameworks
+# Theano is subclass of Frameworks
+# XGBoost is subclass of Frameworks
+# Ayry_Functions is subclass of Functions
+# Gamma_Functions is subclass of Functions
+# Hankel_Functions is subclass of Functions
+# Orthogonal_Polynomials is subclass of Functions
+# Graphics_Processing_Unit is subclass of Hardware
+# Noisy_Intermediate-Scale_Quantum_Processors is subclass of Hardware
+# Contrastive_Unsupervised_Representations_for_Reinforcement_Learning is subclass of Image-Based
+# Face_recognition is subclass of Image_Processing
+# k-Nearest_Neighbor is subclass of Instance-Based
+# Locally_Weighted_Learning is subclass of Instance-Based
+# Self-Organizing_Map is subclass of Instance-Based
+# Support_Vector_Machines is subclass of Instance-Based
+# Institutions is subclass of Involved
+# People is subclass of Involved
+# Linear_Regression is subclass of Linear_Models
+# Ordinary_Least_Squares is subclass of Linear_Models
+# Perceptron is subclass of Linear_Models
+# Hiden_Markov_Model is subclass of Markov_Process_Models
+# Hierarchical_Markov_Models is subclass of Markov_Process_Models
+# Markov-chain_Forecasting_Models is subclass of Markov_Process_Models
+# Markov_Chain is subclass of Markov_Process_Models
+# Markov_Decision_Process is subclass of Markov_Process_Models
+# Markov_Random_Field is subclass of Markov_Process_Models
+# Partially_Observable_Markov_Decision_Process is subclass of Markov_Process_Models
+# Tolerant_Markov_Model is subclass of Markov_Process_Models
+# AutoML is subclass of MLTypes
+# Reinforcement_Learning is subclass of MLTypes
+# Semi-supervised_Learning is subclass of MLTypes
+# Supervised_Learning is subclass of MLTypes
+# Unsupervised_Learning is subclass of MLTypes
+# Bernouilli_Naive_Bayes is subclass of Naive_Bayes
+# Categorical_Naive_Bayes is subclass of Naive_Bayes
+# Complement_Naive_Bayes is subclass of Naive_Bayes
+# Gaussian_Naive_Bayes is subclass of Naive_Bayes
+# Multinomial_Naive_Bayes is subclass of Naive_Bayes
+# Bidirectional_Encoder_Representations_From_Transformers is subclass of Natural_Language_Processing
+# Latent_Dirichlet_Allocation is subclass of Natural_Language_Processing
+# Natural_Language_Generation is subclass of Natural_Language_Processing
+# Natural_Language_Understand is subclass of Natural_Language_Processing
+# Natural_Language_Understanding is subclass of Natural_Language_Processing
+# Android is subclass of Operating_System
+# Linux is subclass of Operating_System
+# MacOS is subclass of Operating_System
+# Windows is subclass of Operating_System
+# BFGS is subclass of Optimization
+# Newton-CG is subclass of Optimization
+# Simplex is subclass of Optimization
+# Factor_Analysis is subclass of Probabilistic_Models
+# Probabilistic_PCA is subclass of Probabilistic_Models
+# 3-classe_classification is subclass of Probability_Calibration
+# Classifiers is subclass of Probability_Calibration
+# Comparison_of_Calibration_of_Classifiers is subclass of Probability_Calibration
+# Curves is subclass of Probability_Calibration
+# Gaussian_Process_Regression is subclass of Regression
+# Least-Angle_Regression is subclass of Regression
+# Linear is subclass of Regression
+# Locally_Estimated_Scatterplot_Smoothing is subclass of Regression
+# Logistic_Regression is subclass of Regression
+# Multivariate_Adaptive_Regression_Splines is subclass of Regression
+# Ridge_Regression is subclass of Regression
+# Stepwise_Regression is subclass of Regression
+# Elastic_Net is subclass of Regularization
+# Least_Absolute_Shinkage_and_Selection_Operator is subclass of Regularization
+
+Data Preprocessing is subclass of Data Science Task
+Supervised Learning is subclass of Data Science Task
+Unsupervised Learning is subclass of Data Science Task
+# TODO: binary vs multiclass classification
+Classification is subclass of Supervised Learning
+Regression is subclass of Supervised Learning
+Clustering is subclass of Unsupervised Learning
+Data Collection is subclass of Data Science Task
+Data Loading is subclass of Data Science Task
+Data Cleaning is subclass of Data Preprocessing
+Data Augmentation is subclass of Data Preprocessing
+Data Integration is subclass of Data Preprocessing
+Data Exploration is subclass of Data Science Task
+Data Visualization is subclass of Data Science Task
+Statistical Analysis is subclass of Data Science Task
+Natural Language Processing is subclass of Data Science Task
+Image Processing is subclass of Data Science Task
+Video Processing is subclass of Data Science Task
+Time Series Analysis is subclass of Data Science Task
+Anomaly Detection is subclass of Data Science Task
+Fraud Detection is subclass of Anomaly Detection
+Network Intrusion Detection is subclass of Anomaly Detection
+Model Selection is subclass of Data Science Task
+Model Evaluation is subclass of Data Science Task
+Model Deployment is subclass of Data Science Task
+
+TrainTestSplit performs Model Selection
+KFold performs Model Selection
+StratifiedKFold performs Model Selection
+Data Normalization is subclass of Data Preprocessing
+MinMaxScaler performs Data Normalization
+StandardScaler performs Data Normalization
+Data Encoding is subclass of Data Preprocessing
+OneHotEncoder performs Data Encoding
+LabelEncoder performs Data Encoding
+OrdinalEncoder performs Data Encoding
+SVM performs Classification
+
+Predictive Performance is a Measure
+Accuracy is a Metric
+Recall is a Metric
+ROC AUC Score is a Metric
+Accuracy contributes to Predictive Performance
+Recall contributes to Predictive Performance
+ROC AUC Score contributes to Predictive Performance
+
+# Evaluation procedures are defined in evaluations.py — do not duplicate here.
+
+# Interface is a Core Concept
+Sklearn Estimator is an Interface
+Sklearn Estimator calls __init__; calls fit; calls predict
+
+Sklearn Transformer is an Interface
+Sklearn Transformer calls __init__; calls fit; calls transform
+
+Function is an Interface
+
+TrainTestSplit might introduce Bias
+
+# TODO: libraries and versions
+sklearn.model_selection.train_test_split is an Operator
+sklearn.model_selection.train_test_split implements TrainTestSplit
+sklearn.model_selection.train_test_split is a Function
+
+sklearn.model_selection.KFold is an Operator
+sklearn.model_selection.KFold implements KFold
+sklearn.model_selection.KFold is a Function
+
+sklearn.model_selection.StratifiedKFold is an Operator
+sklearn.model_selection.StratifiedKFold implements StratifiedKFold
+sklearn.model_selection.StratifiedKFold is a Function
+
+sklearn.preprocessing.MinMaxScaler is an Operator
+sklearn.preprocessing.MinMaxScaler is a Sklearn Transformer
+sklearn.preprocessing.MinMaxScaler implements MinMaxScaler
+
+sklearn.preprocessing.StandardScaler is an Operator
+sklearn.preprocessing.StandardScaler is a Sklearn Transformer
+sklearn.preprocessing.StandardScaler implements StandardScaler
+
+sklearn.preprocessing.OneHotEncoder is an Operator
+sklearn.preprocessing.OneHotEncoder is a Sklearn Transformer
+sklearn.preprocessing.OneHotEncoder implements OneHotEncoder
+
+sklearn.svm.SVC is an Operator
+sklearn.svm.SVC is a Sklearn Estimator
+sklearn.svm.SVC implements SVM
+
+Classification should ensure Fairness
+
+# Metrics, e.g., https://www.kaggle.com/code/alexisbcook/ai-fairness
+Demographic Parity is subclass of Equality
+Demographic Parity contributes to Equality
+Equality of Opportunity  is subclass of Equality
+Equality of Opportunity contributes to Equality
+Equal Accuracy is subclass of Equality
+Equal Accuracy contributes to Equality
+Group Unaware is subclass of Equality
+Group Unaware contributes to Equality
+
+# https://github.com/understandable-machine-intelligence-lab/Quantus
+Explainability is a Requirement
+Explanation Robustness is subclass of Explainability
+Explanation Consistency is a Measure
+Quantus_Consistency is a Metric
+Explanation Consistency contributes to Explanation Robustness
+Quantus_Consistency implements Explanation Consistency
+Quantus_Consistency applies to Tabular Data
+
+# X implements Demographic parity
+
+Immediate Alternatives is a Mitigation Action
+Immediate Alternatives might mitigate Bias

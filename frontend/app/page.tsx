@@ -1,96 +1,100 @@
+// app/home/Home.tsx
 "use client";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useUIStore } from "@/store/ui";
+import { useSessionStore } from "@/store/session";
+import { usePipelineStore } from "@/store/pipeline";
+import { usePipelineSocket } from "@/hooks/usePipelineSocket";
+import PipelineComposition from "@/components/pipeline/composition/canvas/index";
+import ContactForm from "@/components/ContactForm";
+import CodeViewer from "@/components/ui/code-viewer";
 
-import React, { useState } from "react";
-import Mock from "./components/mock";
-import Sidebar from "./components/sidebar";
-import getState from "./state";
-
+import { Toaster } from "react-hot-toast";
+import { useRecommendationEngineStore } from "@/store/recommendation-engine";
+import FeedbackModal from "@/components/FeedbackLoop/feedback-modal";
+import AgentPanel from "@/components/agent-panel";
+import { MissingEnvVarsDialog } from "@/components/vault";
+import { ObjectivesConflictDialog } from "@/components/objectives/conflict-dialog";
+import ErrorBoundary from "@/components/error-boundary";
 
 export default function Home() {
-  const ws = getState((state) => state.ws);
-  const setName = getState((state) => state.init.setName);
-  const setAvatar = getState((state) => state.init.setAvatar);
-  const setDatasets = getState((state) => state.init.setDatasets);
-  const setTasks = getState((state) => state.init.setTasks);
-  const setAdapters = getState((state) => state.init.setAdapters);
-  const setSelectedObjectives = getState((state) => state.current.setSelectedObjectives);
-  const setObjectives = getState((state) => state.init.setObjectives);
-  const setEvals = getState((state) => state.init.setEvals);
-  const setQueries = getState((state) => state.init.setQueries);
-  const setSelectedTask = getState((state) => state.current.setSelectedTask);
-  const setSelectedEval = getState((state) => state.current.setSelectedEval);
-  const setEnableDatasetUpload = getState((state) => state.current.setEnableDatasetUpload);
-  const setEnableDatasetDelete = getState((state) => state.current.setEnableDatasetDelete);
-  const setEnableTaskSelection = getState((state) => state.current.setEnableTaskSelection);
-  const setEnableEvalSelection = getState((state) => state.current.setEnableEvalSelection);
-  const setEnableObjectiveSelection = getState((state) => state.current.setEnableObjectiveSelection);
-  const setEnableObjectiveDelete = getState((state) => state.current.setEnableObjectiveDelete);
-  const setEnableObjectiveDragging = getState((state) => state.current.setEnableObjectiveDragging);
+  const router = useRouter();
+  const { status } = useSession();
 
-  
-  ws.onopen = ev => {
-    ws.send(JSON.stringify({
-      command: 'init',
-    }));
-  };
+  const { activeSessionId } = useSessionStore();
+  const { setPipelineHistory } = usePipelineStore();
 
-  ws.onmessage = ev => {
-    const resp = JSON.parse(ev.data);
-    const {type, value} = resp;
-    console.log(type, value);
-    switch(type) {
-      case "user/name": {
-        setName(value);
-        break;
-      }
-      case "user/avatar": {
-        setAvatar(value);
-        break;
-      }
-      case "state/tasks": {
-        setTasks(value);
-        break;
-      }
-      case "state/adapters": {
-        setAdapters(value);
-        break;
-      }
-      case "state/objectives": {
-        setSelectedObjectives(value);
-        break;
-      }
-      case "state/evals": {
-        setEvals(value);
-        break;
-      }
-      case "state/queries": {
-        setQueries(value);
-        break;
-      }
-      case "state/query": {
-        setDatasets(value["datasets"]);
-        setEnableDatasetUpload(value["toggles"]["dataset"]["add"]);
-        setEnableDatasetDelete(value["toggles"]["dataset"]["delete"]);
-        setEnableTaskSelection(value["toggles"]["task"]["select"]);
-        setEnableEvalSelection(value["toggles"]["eval"]["select"]);
-        setEnableObjectiveSelection(value["toggles"]["objectives"]["select"]);
-        setEnableObjectiveDelete(value["toggles"]["objectives"]["select"]);
-        setEnableObjectiveDragging(value["toggles"]["objectives"]["drag"]);
-        setSelectedTask(value["task"]["name"]);
-        setSelectedEval(value["eval"]["name"]);
-        setObjectives(value["objectives"]);
-        break;
-      }
+  const {
+    code,
+    language,
+    showCodeViewer,
+    setShowCodeViewer,
+    queries,
+    feedbackModalOpen,
+    setFeedbackModalOpen,
+  } = useUIStore();
+
+  // Redirect if unauthenticated
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/login");
+  }, [status, router]);
+
+  // Clear pipeline when there is no active session
+  useEffect(() => {
+    if (!activeSessionId) setPipelineHistory(null);
+  }, [activeSessionId, setPipelineHistory]);
+
+  usePipelineSocket({
+    onQueries: (nextQueries) => {
+      setFeedbackModalOpen(nextQueries.length > 0 && nextQueries[0]?.question !== "");
+    },
+  });
+
+  useEffect(() => {
+    if (queries.length > 0) {
+      setFeedbackModalOpen(true);
     }
-  }
+  }, [queries, setFeedbackModalOpen]);
 
-  return <>
-    <main className="w-full pl-64 flex flex-col h-full">
-      <Mock />
-    </main>
+  if (status === "loading" || status === "unauthenticated") return null;
 
-    <aside className="fixed flex inset-y-0 w-64 h-full">
-      <Sidebar />
-    </aside>
-  </>
+  return (
+    <ErrorBoundary>
+      <div className='flex relative h-full flex-row'>
+        {/* Overlays — positioned outside the flex layout flow so they
+            never steal width from <main>. ContactForm's GuidedTooltip
+            wrapper would otherwise become a flex sibling of <main>. */}
+        <div className='absolute inset-0 pointer-events-none z-20'>
+          <div className='pointer-events-auto'>
+            <FeedbackModal
+              isOpen={feedbackModalOpen}
+              onClose={() => setFeedbackModalOpen(false)}
+            />
+          </div>
+          <div className='pointer-events-auto'>
+            <ContactForm />
+          </div>
+        </div>
+
+        <AgentPanel />
+        <MissingEnvVarsDialog />
+        <ObjectivesConflictDialog />
+
+        <CodeViewer
+          language={language}
+          code={code}
+          show={showCodeViewer}
+          setShow={setShowCodeViewer}
+        />
+
+        <main className='w-full flex flex-col h-full relative z-10'>
+          <PipelineComposition />
+        </main>
+
+        <Toaster />
+      </div>
+    </ErrorBoundary>
+  );
 }

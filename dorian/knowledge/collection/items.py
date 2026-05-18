@@ -15,9 +15,12 @@ class DsaScraperItem(Item):
 class LibraryItem(Item):
     documentationUrl=Field()
     name=Field()
-    hyperParameters=Field()
-    functions=Field()
-    version=Field()
+    hyperParameters = Field()
+    functions = Field()
+    version = Field()
+    outputs = Field()
+    attributes = Field()
+    type = Field()
 
 
 class HyperParameter(Item):
@@ -28,9 +31,16 @@ class HyperParameter(Item):
 class Functions(Item):
     method=Field()
     args=Field()
+    outputs=Field()
+
+
+class FunctionOutput(Item):
+    name=Field()
+    type=Field()
 
 
 # TODO could be positional or keyword arguments, positional do not have name
 class FunctionArgs(Item):
     name=Field()
     type=Field()
+    default=Field()

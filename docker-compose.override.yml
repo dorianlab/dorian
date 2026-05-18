@@ -1,0 +1,27 @@
+# Local development overrides — caps CPU limits to fit a 12-CPU Mac.
+# docker compose automatically merges this with docker-compose.yml.
+# Do NOT commit this file (it's gitignored).
+services:
+  redis:
+    cpus: 1
+
+  postgres:
+    cpus: 2
+
+  exec-worker:
+    cpus: 4
+
+  rl-trainer:
+    cpus: 2
+
+  flaml-seeder:
+    cpus: 2
+
+  backend:
+    cpus: 4
+
+  gateway:
+    cpus: 2
+
+  frontend:
+    cpus: 2

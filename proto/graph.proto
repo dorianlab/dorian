@@ -1,0 +1,208 @@
+syntax = "proto3";
+package dorian.graph;
+
+option go_package = "dorian/gateway/internal/pb/graph";
+
+// ---------------------------------------------------------------------------
+// Port-Typed Process Graph — the core data model.
+//
+// Forward-compatible: defines the full ProcessGraph model (cycles, typed
+// channels, activation modes) but the engine implements the DAG subset first.
+// ---------------------------------------------------------------------------
+
+// How a node activates when inputs arrive.
+enum ActivationMode {
+  ACTIVATION_MODE_UNSPECIFIED = 0;
+  ACTIVATION_MODE_TRANSFORM   = 1; // Stateless, fires once when all inputs ready
+  ACTIVATION_MODE_REACTIVE    = 2; // Stateful, fires on each incoming message
+  ACTIVATION_MODE_SERVICE     = 3; // Long-running, accepts async requests
+  ACTIVATION_MODE_ROUTER      = 4; // Conditional dispatch on message content
+}
+
+// Channel delivery semantics on an edge.
+enum DeliveryMode {
+  DELIVERY_MODE_UNSPECIFIED = 0;
+  DELIVERY_MODE_ONCE    = 1; // Artifact produced once, consumed downstream
+  DELIVERY_MODE_STREAM  = 2; // Items arrive incrementally
+  DELIVERY_MODE_MAILBOX = 3; // Message queue with backpressure
+}
+
+// DEM domain assignment for an actor — Synchronous Dataflow vs
+// Discrete Event. Today's pipelines map entirely onto SDF; DE is
+// reserved for the small set of async primitives (cancel, mitigation
+// triggers) that already flow through the event bus.
+enum DomainKind {
+  DOMAIN_KIND_UNSPECIFIED = 0;
+  DOMAIN_KIND_SDF         = 1;
+  DOMAIN_KIND_DE          = 2;
+}
+
+// Determinism class — gates content-addressable cache eligibility.
+// `DETERMINISM_UNKNOWN` is the conservative default; the cache only
+// participates when an actor is explicitly `DETERMINISTIC`.
+enum DeterminismClass {
+  DETERMINISM_UNSPECIFIED      = 0;
+  DETERMINISM_DETERMINISTIC    = 1;
+  DETERMINISM_NON_DETERMINISTIC = 2;
+  DETERMINISM_UNKNOWN          = 3;
+}
+
+// Logical token type carried on a channel. Strongly typed at the
+// channel level so schedulers catch rate/type mismatches before
+// dispatch; payloads stay dynamic at the wire boundary.
+enum TokenType {
+  TOKEN_TYPE_UNSPECIFIED = 0;
+  TOKEN_TYPE_DATAFRAME   = 1; // pandas DataFrame, Arrow table
+  TOKEN_TYPE_ARRAY       = 2; // 1-D / 2-D numeric array
+  TOKEN_TYPE_SCALAR      = 3; // primitive scalar
+  TOKEN_TYPE_PYOBJECT    = 4; // generic Python value (default)
+  TOKEN_TYPE_MODEL       = 5; // trained model (warmstart-able if KB says so)
+  TOKEN_TYPE_STATISTICS  = 6; // fit outputs (mergeable per MaR)
+  TOKEN_TYPE_EVENT       = 7; // discrete event payload
+}
+
+// ---------------------------------------------------------------------------
+// Node types (mirrors dorian/dag.py: Operator, Snippet, Parameter, Node, Group)
+// ---------------------------------------------------------------------------
+
+message Operator {
+  string name     = 1; // e.g. "sklearn.preprocessing.StandardScaler"
+  string language = 2; // e.g. "python"
+  repeated string tasks = 3; // method sequence: ["fit", "transform"]
+}
+
+message Snippet {
+  string name     = 1;
+  string code     = 2;
+  string language = 3;
+}
+
+message Parameter {
+  string name  = 1;
+  string dtype = 2; // "int", "float", "string", "bool", "eval", "env"
+  string value = 3;
+}
+
+// Pattern-matching node (rewrite rules only).
+message PatternNode {
+  string type     = 1; // regex pattern
+  string text     = 2; // regex pattern
+  string language = 3;
+}
+
+// Collapsed compound operator sub-DAG.
+message Group {
+  string name = 1;
+  map<string, ProcessNodePayload> children = 2;
+  repeated Edge internal_edges = 3;
+  map<string, IOMapping> io_map = 4;
+  bool collapsed = 5;
+  string source_interface   = 6;
+  string source_pipeline_id = 7;
+}
+
+message IOMapping {
+  string direction        = 1; // "input" or "output"
+  string internal_node_id = 2;
+  string internal_handle  = 3; // int-as-string or keyword name
+}
+
+// Union type for node payloads.
+message ProcessNodePayload {
+  oneof payload {
+    Operator     operator      = 1;
+    Snippet      snippet       = 2;
+    Parameter    parameter     = 3;
+    PatternNode  pattern_node  = 4;
+    Group        group         = 5;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ProcessNode — a node in the graph with lifecycle and port metadata.
+// ---------------------------------------------------------------------------
+
+message ProcessNode {
+  string id = 1;
+  ProcessNodePayload payload = 2;
+  ActivationMode activation_mode = 3;
+  // Port declarations (future: typed ports with schemas).
+  repeated PortDeclaration inputs  = 4;
+  repeated PortDeclaration outputs = 5;
+
+  // DEM annotations — populated by the parser; consulted by the
+  // domain schedulers and the cache layer.
+  DomainKind       domain          = 6;
+  DeterminismClass determinism     = 7;
+  // Operator version embedded in the cache key so a library upgrade
+  // invalidates affected entries. Empty string ≡ "unknown" (cache
+  // skipped for that actor).
+  string           operator_version = 8;
+  // Whether the operator implements a warmstart path from a prior
+  // materialised model artifact (Derakhshan thesis Ch 2 reuse).
+  bool             is_warmstartable = 9;
+}
+
+message PortDeclaration {
+  string name = 1;
+  string type_hint = 2; // e.g. "DataFrame", "Message", "any"
+  int32 position = 3;
+  // Logical token type — declared at the channel level.
+  TokenType token_type = 4;
+  // SDF token rate (consumed/produced per firing). Defaults to 1.
+  uint32    rate       = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Edge / Channel
+// ---------------------------------------------------------------------------
+
+message Edge {
+  string source      = 1; // source node UUID
+  string destination = 2; // destination node UUID
+
+  // Position can be an integer (positional arg) or string (keyword arg).
+  // Protobuf doesn't have a union for int|string, so we use oneof.
+  oneof position_value {
+    int32  position_int = 3;
+    string position_str = 4;
+  }
+
+  int32 output = 5; // source output port index (default 0)
+
+  // Channel metadata (forward-compatible).
+  DeliveryMode delivery_mode = 6;
+  TokenType    token_type    = 7;
+  uint32       rate          = 8; // SDF token rate per firing (default 1)
+}
+
+// ---------------------------------------------------------------------------
+// ProcessGraph — the top-level graph structure.
+// ---------------------------------------------------------------------------
+
+message ProcessGraph {
+  map<string, ProcessNode> nodes = 1;
+  repeated Edge edges = 2;
+
+  // Metadata (optional, for serialization).
+  GraphMetadata metadata = 3;
+}
+
+message GraphMetadata {
+  string version    = 1;
+  string created_at = 2;
+  int32 node_count  = 3;
+  int32 edge_count  = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Termination predicate (for cycle support — Phase 6).
+// ---------------------------------------------------------------------------
+
+message TerminationPredicate {
+  string edge_id = 1;
+  int32 max_iterations = 2;
+  double timeout_seconds = 3;
+  // Future: user-defined predicate function reference.
+  string predicate_fn_ref = 4;
+}

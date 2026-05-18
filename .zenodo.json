@@ -1,0 +1,34 @@
+{
+  "title": "Dorian: a human-in-the-loop framework for the assisted design of data science pipelines (thesis-companion release)",
+  "description": "<p>Reference implementation of <strong>Dorian</strong>, cited in the PhD thesis <em>Assisted Design of End-to-End Data Science Pipelines</em> (Sergey Redyuk, TU Berlin, 2026). This snapshot includes the recommendation engine, the Experiment Store, the DS Pipeline Extractor (AST-based), the runtime observability layer, the three-lateral background generation engine (AutoML wrappers, reinforcement-learning agent, KB-driven Cartesian-product enumeration), the data-quality validator, and the prediction-validation prototype.</p><p>Active development continues at <a href=\"https://github.com/dorianlab/dorian\">github.com/dorianlab/dorian</a>; this Zenodo record is a frozen snapshot of the state cited in the thesis.</p>",
+  "creators": [
+    {
+      "name": "Redyuk, Sergey",
+      "affiliation": "DFKI",
+      "orcid": "0000-0001-7131-745X"
+    }
+  ],
+  "upload_type": "software",
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "keywords": [
+    "data science pipelines",
+    "AutoML",
+    "intelligent discovery assistant",
+    "human-in-the-loop",
+    "recommendation systems",
+    "knowledge graph",
+    "experiment management",
+    "data quality validation",
+    "Python"
+  ],
+  "language": "eng",
+  "version": "0.1.0",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/dorianlab/dorian",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+# ---- Concept hierarchy ----
+# Concepts that operators implement, organized via is_subclass_of.
+# The family query traverses (op)-[:implements]->(concept)-[:is_subclass_of]->(family).
+
+Min-Max Scaling is subclass of Scaling
+Standard Scaling is subclass of Scaling
+Robust Scaling is subclass of Scaling
+Normalization is subclass of Scaling
+Quantile Transformation is subclass of Scaling
+Power Transformation is subclass of Scaling
+
+One-Hot Encoding is subclass of Encoding
+Label Encoding is subclass of Encoding
+Ordinal Encoding is subclass of Encoding
+
+Support Vector Classification is subclass of Support Vector Machine
+Linear Support Vector Classification is subclass of Support Vector Machine
+
+AdaBoost is subclass of Ensemble
+Extra Trees is subclass of Ensemble
+Gradient Boosting is subclass of Ensemble
+Random Forest is subclass of Ensemble
+Random Trees Embedding is subclass of Ensemble
+
+Bernoulli Naive Bayes is subclass of Naive Bayes
+Gaussian Naive Bayes is subclass of Naive Bayes
+Multinomial Naive Bayes is subclass of Naive Bayes
+
+Decision Tree Classification is subclass of Decision Tree
+
+K-Nearest Neighbors is subclass of Nearest Neighbors
+
+Linear Discriminant Analysis is subclass of Discriminant Analysis
+Quadratic Discriminant Analysis is subclass of Discriminant Analysis
+
+Multi-Layer Perceptron is subclass of Neural Network
+
+Passive-Aggressive Classification is subclass of Linear Model
+Stochastic Gradient Descent is subclass of Linear Model
+
+Simple Imputation is subclass of Imputation
+
+Fast ICA is subclass of Decomposition
+Kernel PCA is subclass of Decomposition
+Principal Component Analysis is subclass of Decomposition
+Truncated SVD is subclass of Decomposition
+
+Feature Agglomeration is subclass of Agglomeration
+
+RBF Sampling is subclass of Kernel Approximation
+Nystroem Approximation is subclass of Kernel Approximation
+
+Polynomial Features is subclass of Feature Generator
+
+Percentile Feature Selection is subclass of Feature Selector
+K-Best Feature Selection is subclass of Feature Selector
+
+Train-Test Split is subclass of Model Selection
+K-Fold Cross-Validation is subclass of Model Selection
+Stratified K-Fold Cross-Validation is subclass of Model Selection
+
+# TODO: libraries and versions
+sklearn.model_selection.train_test_split is an Operator
+sklearn.model_selection.train_test_split implements Train-Test Split
+sklearn.model_selection.train_test_split is a Function
+sklearn.model_selection.train_test_split performs Model Selection
+# NOTE: I/O declarations for train_test_split live in
+# ``sources/sklearn.py`` (auto-extracted from scikit-learn docs).
+# Do not duplicate them here -- every duplicate creates a second
+# port node, the query returns both, and downstream sees e.g. 8
+# outputs instead of 4 for train_test_split.
+
+sklearn.model_selection.KFold is an Operator
+sklearn.model_selection.KFold implements K-Fold Cross-Validation
+sklearn.model_selection.KFold is a Function
+sklearn.model_selection.KFold performs Model Selection
+
+sklearn.model_selection.StratifiedKFold is an Operator
+sklearn.model_selection.StratifiedKFold implements Stratified K-Fold Cross-Validation
+sklearn.model_selection.StratifiedKFold is a Function
+sklearn.model_selection.StratifiedKFold performs Model Selection
+
+sklearn.preprocessing.MinMaxScaler is an Operator
+sklearn.preprocessing.MinMaxScaler is a Sklearn Transformer
+sklearn.preprocessing.MinMaxScaler implements Min-Max Scaling
+sklearn.preprocessing.MinMaxScaler performs Data Normalization
+
+sklearn.preprocessing.StandardScaler is an Operator
+sklearn.preprocessing.StandardScaler is a Sklearn Transformer
+sklearn.preprocessing.StandardScaler implements Standard Scaling
+sklearn.preprocessing.StandardScaler performs Data Normalization
+
+sklearn.preprocessing.OneHotEncoder is an Operator
+sklearn.preprocessing.OneHotEncoder is a Sklearn Transformer
+sklearn.preprocessing.OneHotEncoder implements One-Hot Encoding
+sklearn.preprocessing.OneHotEncoder performs Data Encoding
+
+sklearn.preprocessing.LabelEncoder is an Operator
+sklearn.preprocessing.LabelEncoder is a Sklearn Transformer
+sklearn.preprocessing.LabelEncoder implements Label Encoding
+sklearn.preprocessing.LabelEncoder performs Data Encoding
+
+sklearn.preprocessing.OrdinalEncoder is an Operator
+sklearn.preprocessing.OrdinalEncoder is a Sklearn Transformer
+sklearn.preprocessing.OrdinalEncoder implements Ordinal Encoding
+sklearn.preprocessing.OrdinalEncoder performs Data Encoding
+
+sklearn.svm.SVC is an Operator
+sklearn.svm.SVC is a Sklearn Estimator
+sklearn.svm.SVC implements Support Vector Classification
+sklearn.svm.SVC performs Classification
+
+# ---------------------------------------------------------------------------
+# Seeder-relevant operators — classifiers (Sklearn Estimator interface)
+# ---------------------------------------------------------------------------
+
+sklearn.ensemble.AdaBoostClassifier is an Operator
+sklearn.ensemble.AdaBoostClassifier is a Sklearn Estimator
+sklearn.ensemble.AdaBoostClassifier performs Classification
+sklearn.ensemble.AdaBoostClassifier implements AdaBoost
+
+sklearn.naive_bayes.BernoulliNB is an Operator
+sklearn.naive_bayes.BernoulliNB is a Sklearn Estimator
+sklearn.naive_bayes.BernoulliNB performs Classification
+sklearn.naive_bayes.BernoulliNB implements Bernoulli Naive Bayes
+
+sklearn.tree.DecisionTreeClassifier is an Operator
+sklearn.tree.DecisionTreeClassifier is a Sklearn Estimator
+sklearn.tree.DecisionTreeClassifier performs Classification
+sklearn.tree.DecisionTreeClassifier implements Decision Tree Classification
+
+sklearn.ensemble.ExtraTreesClassifier is an Operator
+sklearn.ensemble.ExtraTreesClassifier is a Sklearn Estimator
+sklearn.ensemble.ExtraTreesClassifier performs Classification
+sklearn.ensemble.ExtraTreesClassifier implements Extra Trees
+
+sklearn.naive_bayes.GaussianNB is an Operator
+sklearn.naive_bayes.GaussianNB is a Sklearn Estimator
+sklearn.naive_bayes.GaussianNB performs Classification
+sklearn.naive_bayes.GaussianNB implements Gaussian Naive Bayes
+
+sklearn.ensemble.GradientBoostingClassifier is an Operator
+sklearn.ensemble.GradientBoostingClassifier is a Sklearn Estimator
+sklearn.ensemble.GradientBoostingClassifier performs Classification
+sklearn.ensemble.GradientBoostingClassifier implements Gradient Boosting
+
+sklearn.neighbors.KNeighborsClassifier is an Operator
+sklearn.neighbors.KNeighborsClassifier is a Sklearn Estimator
+sklearn.neighbors.KNeighborsClassifier performs Classification
+sklearn.neighbors.KNeighborsClassifier implements K-Nearest Neighbors
+
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis is an Operator
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis is a Sklearn Estimator
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis performs Classification
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis implements Linear Discriminant Analysis
+
+sklearn.svm.LinearSVC is an Operator
+sklearn.svm.LinearSVC is a Sklearn Estimator
+sklearn.svm.LinearSVC performs Classification
+sklearn.svm.LinearSVC implements Linear Support Vector Classification
+
+sklearn.neural_network.MLPClassifier is an Operator
+sklearn.neural_network.MLPClassifier is a Sklearn Estimator
+sklearn.neural_network.MLPClassifier performs Classification
+sklearn.neural_network.MLPClassifier implements Multi-Layer Perceptron
+
+sklearn.naive_bayes.MultinomialNB is an Operator
+sklearn.naive_bayes.MultinomialNB is a Sklearn Estimator
+sklearn.naive_bayes.MultinomialNB performs Classification
+sklearn.naive_bayes.MultinomialNB implements Multinomial Naive Bayes
+
+sklearn.linear_model.PassiveAggressiveClassifier is an Operator
+sklearn.linear_model.PassiveAggressiveClassifier is a Sklearn Estimator
+sklearn.linear_model.PassiveAggressiveClassifier performs Classification
+sklearn.linear_model.PassiveAggressiveClassifier implements Passive-Aggressive Classification
+
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis is an Operator
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis is a Sklearn Estimator
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis performs Classification
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis implements Quadratic Discriminant Analysis
+
+sklearn.ensemble.RandomForestClassifier is an Operator
+sklearn.ensemble.RandomForestClassifier is a Sklearn Estimator
+sklearn.ensemble.RandomForestClassifier performs Classification
+sklearn.ensemble.RandomForestClassifier implements Random Forest
+
+sklearn.linear_model.SGDClassifier is an Operator
+sklearn.linear_model.SGDClassifier is a Sklearn Estimator
+sklearn.linear_model.SGDClassifier performs Classification
+sklearn.linear_model.SGDClassifier implements Stochastic Gradient Descent
+
+# ---------------------------------------------------------------------------
+# Seeder-relevant operators — imputation + rescaling (Sklearn Transformer)
+# ---------------------------------------------------------------------------
+
+sklearn.impute.SimpleImputer is an Operator
+sklearn.impute.SimpleImputer is a Sklearn Transformer
+sklearn.impute.SimpleImputer performs Missing Data Imputation
+sklearn.impute.SimpleImputer implements Simple Imputation
+
+sklearn.preprocessing.RobustScaler is an Operator
+sklearn.preprocessing.RobustScaler is a Sklearn Transformer
+sklearn.preprocessing.RobustScaler performs Data Normalization
+sklearn.preprocessing.RobustScaler implements Robust Scaling
+
+sklearn.preprocessing.Normalizer is an Operator
+sklearn.preprocessing.Normalizer is a Sklearn Transformer
+sklearn.preprocessing.Normalizer performs Data Normalization
+sklearn.preprocessing.Normalizer implements Normalization
+
+sklearn.preprocessing.QuantileTransformer is an Operator
+sklearn.preprocessing.QuantileTransformer is a Sklearn Transformer
+sklearn.preprocessing.QuantileTransformer performs Data Normalization
+sklearn.preprocessing.QuantileTransformer implements Quantile Transformation
+
+sklearn.preprocessing.PowerTransformer is an Operator
+sklearn.preprocessing.PowerTransformer is a Sklearn Transformer
+sklearn.preprocessing.PowerTransformer performs Data Normalization
+sklearn.preprocessing.PowerTransformer implements Power Transformation
+
+# ---------------------------------------------------------------------------
+# Seeder-relevant operators — feature preprocessors (Sklearn Transformer)
+# ---------------------------------------------------------------------------
+
+sklearn.decomposition.FastICA is an Operator
+sklearn.decomposition.FastICA is a Sklearn Transformer
+sklearn.decomposition.FastICA performs Dimensionality Reduction
+sklearn.decomposition.FastICA implements Fast ICA
+
+sklearn.cluster.FeatureAgglomeration is an Operator
+sklearn.cluster.FeatureAgglomeration is a Sklearn Transformer
+sklearn.cluster.FeatureAgglomeration performs Feature Selection
+sklearn.cluster.FeatureAgglomeration implements Feature Agglomeration
+
+sklearn.decomposition.KernelPCA is an Operator
+sklearn.decomposition.KernelPCA is a Sklearn Transformer
+sklearn.decomposition.KernelPCA performs Dimensionality Reduction
+sklearn.decomposition.KernelPCA implements Kernel PCA
+
+sklearn.kernel_approximation.RBFSampler is an Operator
+sklearn.kernel_approximation.RBFSampler is a Sklearn Transformer
+sklearn.kernel_approximation.RBFSampler performs Feature Engineering
+sklearn.kernel_approximation.RBFSampler implements RBF Sampling
+
+sklearn.kernel_approximation.Nystroem is an Operator
+sklearn.kernel_approximation.Nystroem is a Sklearn Transformer
+sklearn.kernel_approximation.Nystroem performs Feature Engineering
+sklearn.kernel_approximation.Nystroem implements Nystroem Approximation
+
+sklearn.decomposition.PCA is an Operator
+sklearn.decomposition.PCA is a Sklearn Transformer
+sklearn.decomposition.PCA performs Dimensionality Reduction
+sklearn.decomposition.PCA implements Principal Component Analysis
+
+sklearn.preprocessing.PolynomialFeatures is an Operator
+sklearn.preprocessing.PolynomialFeatures is a Sklearn Transformer
+sklearn.preprocessing.PolynomialFeatures performs Feature Engineering
+sklearn.preprocessing.PolynomialFeatures implements Polynomial Features
+
+sklearn.ensemble.RandomTreesEmbedding is an Operator
+sklearn.ensemble.RandomTreesEmbedding is a Sklearn Transformer
+sklearn.ensemble.RandomTreesEmbedding performs Feature Engineering
+sklearn.ensemble.RandomTreesEmbedding implements Random Trees Embedding
+
+sklearn.feature_selection.SelectPercentile is an Operator
+sklearn.feature_selection.SelectPercentile is a Sklearn Supervised Transformer
+sklearn.feature_selection.SelectPercentile performs Feature Selection
+sklearn.feature_selection.SelectPercentile implements Percentile Feature Selection
+
+sklearn.feature_selection.SelectKBest is an Operator
+sklearn.feature_selection.SelectKBest is a Sklearn Supervised Transformer
+sklearn.feature_selection.SelectKBest performs Feature Selection
+sklearn.feature_selection.SelectKBest implements K-Best Feature Selection
+
+sklearn.decomposition.TruncatedSVD is an Operator
+sklearn.decomposition.TruncatedSVD is a Sklearn Transformer
+sklearn.decomposition.TruncatedSVD performs Dimensionality Reduction
+sklearn.decomposition.TruncatedSVD implements Truncated SVD
+
+# ---------------------------------------------------------------------------
+# Evaluation functions (Function interface — no expansion)
+# ---------------------------------------------------------------------------
+
+sklearn.metrics.accuracy_score is an Operator
+sklearn.metrics.accuracy_score is a Function
+sklearn.metrics.accuracy_score performs Model Evaluation
+
+pandas.read_csv is an Operator
+pandas.read_csv is a Function
+pandas.read_csv performs Data Loading
+
+# X implements Demographic parity

@@ -1,0 +1,175 @@
+# ==========================================================================
+# Risk taxonomy — EU AI Ethics / TRUSTIFAI ontology
+# ==========================================================================
+
+# ---- Top-level risk categories ----
+Bias is a Risk
+Robustness Risk is a Risk
+Privacy Risk is a Risk
+Transparency Risk is a Risk
+
+# ---- Bias sub-types ----
+Algorithmic Bias is subclass of Bias
+Historical Bias is subclass of Bias
+Class Imbalance is subclass of Bias
+Covariate Shift is subclass of Bias
+Selection Bias is subclass of Bias
+Group Bias is subclass of Bias
+Sampling Bias is subclass of Bias
+Measurement Bias is subclass of Bias
+Label Noise is subclass of Bias
+Proxy Features is subclass of Bias
+Aggregation Bias is subclass of Bias
+
+# ---- Robustness sub-types ----
+Distribution Shift is subclass of Robustness Risk
+Data Leakage is subclass of Robustness Risk
+Feature Scaling Bias is subclass of Robustness Risk
+Outlier Bias is subclass of Robustness Risk
+Overfitting is subclass of Robustness Risk
+
+# ==========================================================================
+# Operator → Risk mappings (might_introduce)
+#
+# Not every operator of the same task carries the same risks. Operators
+# without a mapping for a given risk are available as "Direct Alternatives"
+# — a naive but useful first mitigation discovered via KB query:
+#   MATCH (op)-[:performs]->(task)<-[:performs]-(alt)
+#   WHERE NOT (alt)-[:might_introduce]->(:Node {name: risk})
+# ==========================================================================
+
+# ---- Data splitting (performs Model Selection) ----
+sklearn.model_selection.train_test_split might introduce Sampling Bias
+sklearn.model_selection.train_test_split might introduce Class Imbalance
+sklearn.model_selection.train_test_split might introduce Data Leakage
+
+# ---- Scaling / Normalization (performs Data Normalization) ----
+sklearn.preprocessing.StandardScaler might introduce Outlier Bias
+sklearn.preprocessing.MinMaxScaler might introduce Feature Scaling Bias
+sklearn.preprocessing.MinMaxScaler might introduce Outlier Bias
+sklearn.preprocessing.Normalizer might introduce Distribution Shift
+sklearn.preprocessing.QuantileTransformer might introduce Distribution Shift
+sklearn.preprocessing.PowerTransformer might introduce Distribution Shift
+
+# ---- Encoding (performs Data Encoding) ----
+sklearn.preprocessing.OneHotEncoder might introduce Feature Scaling Bias
+
+# ---- Imputation (performs Missing Data Imputation) ----
+sklearn.impute.SimpleImputer might introduce Measurement Bias
+
+# ---- Dimensionality reduction (performs Dimensionality Reduction) ----
+sklearn.decomposition.PCA might introduce Distribution Shift
+sklearn.decomposition.PCA might introduce Proxy Features
+sklearn.decomposition.FastICA might introduce Distribution Shift
+sklearn.decomposition.KernelPCA might introduce Distribution Shift
+
+# ---- Feature selection (performs Feature Selection) ----
+sklearn.feature_selection.SelectPercentile might introduce Selection Bias
+sklearn.feature_selection.SelectKBest might introduce Selection Bias
+sklearn.cluster.FeatureAgglomeration might introduce Aggregation Bias
+
+# ---- Feature engineering (performs Feature Engineering) ----
+sklearn.preprocessing.PolynomialFeatures might introduce Overfitting
+
+# ---- Classifiers (performs Classification) ----
+sklearn.svm.SVC might introduce Algorithmic Bias
+sklearn.svm.LinearSVC might introduce Algorithmic Bias
+sklearn.ensemble.AdaBoostClassifier might introduce Algorithmic Bias
+sklearn.ensemble.GradientBoostingClassifier might introduce Algorithmic Bias
+sklearn.ensemble.RandomForestClassifier might introduce Algorithmic Bias
+sklearn.ensemble.ExtraTreesClassifier might introduce Algorithmic Bias
+sklearn.tree.DecisionTreeClassifier might introduce Algorithmic Bias
+sklearn.neural_network.MLPClassifier might introduce Algorithmic Bias
+sklearn.neighbors.KNeighborsClassifier might introduce Algorithmic Bias
+sklearn.naive_bayes.GaussianNB might introduce Algorithmic Bias
+sklearn.naive_bayes.BernoulliNB might introduce Algorithmic Bias
+sklearn.naive_bayes.MultinomialNB might introduce Algorithmic Bias
+sklearn.linear_model.SGDClassifier might introduce Algorithmic Bias
+sklearn.linear_model.PassiveAggressiveClassifier might introduce Algorithmic Bias
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis might introduce Algorithmic Bias
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis might introduce Algorithmic Bias
+
+# ==========================================================================
+# EU AI Ethics principles (ALTAI assessment list)
+# ==========================================================================
+
+Human Agency is a Principle
+Technical Robustness is a Principle
+Privacy is a Principle
+Transparency is a Principle
+Diversity Non-Discrimination Fairness is a Principle
+Societal Wellbeing is a Principle
+Accountability is a Principle
+
+# ==========================================================================
+# Risk → Principle mappings (is_threat_to)
+# ==========================================================================
+
+Class Imbalance is threat to Diversity Non-Discrimination Fairness
+Group Bias is threat to Diversity Non-Discrimination Fairness
+Selection Bias is threat to Diversity Non-Discrimination Fairness
+Sampling Bias is threat to Diversity Non-Discrimination Fairness
+Historical Bias is threat to Diversity Non-Discrimination Fairness
+Algorithmic Bias is threat to Diversity Non-Discrimination Fairness
+Proxy Features is threat to Diversity Non-Discrimination Fairness
+Aggregation Bias is threat to Diversity Non-Discrimination Fairness
+
+Distribution Shift is threat to Technical Robustness
+Data Leakage is threat to Technical Robustness
+Feature Scaling Bias is threat to Technical Robustness
+Outlier Bias is threat to Technical Robustness
+Overfitting is threat to Technical Robustness
+Covariate Shift is threat to Technical Robustness
+
+Measurement Bias is threat to Transparency
+Label Noise is threat to Transparency
+
+Bias is threat to Accountability
+
+# ==========================================================================
+# Check → Risk mappings (checks_for)
+#
+# KB pathways that invoke toolbox check functions. When a potential risk
+# is found via (op)-[:might_introduce]->(risk), the system queries:
+#   (check)-[:checks_for]->(risk)
+# to discover which check function validates it on data.
+# ==========================================================================
+
+class_imbalance is a Check
+class_imbalance checks for Class Imbalance
+
+covariate_shift is a Check
+covariate_shift checks for Covariate Shift
+
+selection_bias is a Check
+selection_bias checks for Selection Bias
+
+group_bias is a Check
+group_bias checks for Group Bias
+
+sampling_bias is a Check
+sampling_bias checks for Sampling Bias
+
+measurement_bias is a Check
+measurement_bias checks for Measurement Bias
+
+label_noise is a Check
+label_noise checks for Label Noise
+
+proxy_features is a Check
+proxy_features checks for Proxy Features
+
+distribution_shift is a Check
+distribution_shift checks for Distribution Shift
+
+aggregation_bias is a Check
+aggregation_bias checks for Aggregation Bias
+
+outlier_bias is a Check
+outlier_bias checks for Outlier Bias
+
+feature_scaling_bias is a Check
+feature_scaling_bias checks for Feature Scaling Bias
+
+zero_variance_feature_bias is a Check
+zero_variance_feature_bias checks for Overfitting

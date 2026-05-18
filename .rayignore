@@ -1,0 +1,9 @@
+.git
+.git/**
+.git/objects/**
+**/*.pack
+__pycache__/**
+.venv/**
+node_modules/**
+data/**
+notebooks/**

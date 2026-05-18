@@ -1,0 +1,76 @@
+syntax = "proto3";
+package dorian.execution;
+
+option go_package = "dorian/gateway/internal/pb/execution";
+
+// ---------------------------------------------------------------------------
+// Pipeline execution lifecycle state.
+// Maps from: dorian/models/execution.py (NodeStatus, NodeState,
+//            PipelineRunStatus, PipelineExecution)
+// ---------------------------------------------------------------------------
+
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  NODE_STATUS_PENDING     = 1;
+  NODE_STATUS_RUNNING     = 2;
+  NODE_STATUS_SUCCESS     = 3;
+  NODE_STATUS_FAILED      = 4;
+  NODE_STATUS_SKIPPED     = 5; // downstream of a failed node
+  NODE_STATUS_CANCELLED   = 6;
+}
+
+enum PipelineRunStatus {
+  PIPELINE_RUN_STATUS_UNSPECIFIED = 0;
+  PIPELINE_RUN_STATUS_PENDING     = 1;
+  PIPELINE_RUN_STATUS_RUNNING     = 2;
+  PIPELINE_RUN_STATUS_SUCCESS     = 3;
+  PIPELINE_RUN_STATUS_FAILED      = 4;
+  PIPELINE_RUN_STATUS_CANCELLED   = 5;
+}
+
+message NodeState {
+  string node_id          = 1;
+  NodeStatus status       = 2;
+  optional double start_time = 3; // unix timestamp (seconds)
+  optional double end_time   = 4;
+  optional string error      = 5;
+  optional string result_ref = 6; // pointer to result in ResultStore
+}
+
+message PipelineExecution {
+  string run_id      = 1;
+  string session_id  = 2;
+  string pipeline_id = 3;
+  string uid         = 4;
+  PipelineRunStatus status = 5;
+  optional double start_time = 6;
+  optional double end_time   = 7;
+  map<string, NodeState> node_states = 8;
+}
+
+// ---------------------------------------------------------------------------
+// State update event (streamed from engine during execution).
+// ---------------------------------------------------------------------------
+
+message StateUpdate {
+  string run_id = 1;
+
+  oneof update {
+    PipelineStatusUpdate pipeline_update = 2;
+    NodeStatusUpdate     node_update     = 3;
+  }
+}
+
+message PipelineStatusUpdate {
+  PipelineRunStatus status = 1;
+  optional double timestamp = 2;
+  optional string error = 3;
+}
+
+message NodeStatusUpdate {
+  string node_id     = 1;
+  NodeStatus status  = 2;
+  optional double timestamp = 3;
+  optional string error     = 4;
+  optional string result_ref = 5;
+}

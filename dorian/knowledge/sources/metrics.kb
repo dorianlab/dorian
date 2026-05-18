@@ -1,0 +1,168 @@
+Predictive Performance is a Measure
+Accuracy is a Metric
+Recall is a Metric
+ROC AUC Score is a Metric
+Accuracy contributes to Predictive Performance
+Recall contributes to Predictive Performance
+ROC AUC Score contributes to Predictive Performance
+
+# ---------------------------------------------------------------------------
+# Sklearn Metric interface — plain function: (y_true, y_pred, **kw) -> number
+# Individual metrics may add operator-specific kwargs (e.g. average="weighted").
+# Interface-level I/O applies to all ``Sklearn Metric`` operators unless the
+# operator overrides specific ports (e.g. roc_auc_score uses y_score).
+# ---------------------------------------------------------------------------
+Sklearn Metric is an Interface
+Sklearn Metric has input y_true; is of type any; has position y_true
+Sklearn Metric has input y_pred; is of type any; has position y_pred
+Sklearn Metric has output score; is of type float; has position score
+
+# Classification metrics
+F1 Score is a Metric
+F1 Score contributes to Predictive Performance
+Precision is a Metric
+Precision contributes to Predictive Performance
+
+sklearn.metrics.accuracy_score is an Operator
+sklearn.metrics.accuracy_score is a Sklearn Metric
+sklearn.metrics.accuracy_score implements Accuracy
+sklearn.metrics.accuracy_score evaluates Classification
+
+sklearn.metrics.f1_score is an Operator
+sklearn.metrics.f1_score is a Sklearn Metric
+sklearn.metrics.f1_score implements F1 Score
+sklearn.metrics.f1_score evaluates Classification
+
+sklearn.metrics.precision_score is an Operator
+sklearn.metrics.precision_score is a Sklearn Metric
+sklearn.metrics.precision_score implements Precision
+sklearn.metrics.precision_score evaluates Classification
+
+sklearn.metrics.recall_score is an Operator
+sklearn.metrics.recall_score is a Sklearn Metric
+sklearn.metrics.recall_score implements Recall
+sklearn.metrics.recall_score evaluates Classification
+
+# Regression metrics
+R-squared is a Metric
+R-squared contributes to Predictive Performance
+RMSE is a Metric
+RMSE contributes to Predictive Performance
+MAE is a Metric
+MAE contributes to Predictive Performance
+
+sklearn.metrics.r2_score is an Operator
+sklearn.metrics.r2_score is a Sklearn Metric
+sklearn.metrics.r2_score implements R-squared
+sklearn.metrics.r2_score evaluates Regression
+
+sklearn.metrics.mean_squared_error is an Operator
+sklearn.metrics.mean_squared_error is a Sklearn Metric
+sklearn.metrics.mean_squared_error implements RMSE
+sklearn.metrics.mean_squared_error evaluates Regression
+
+sklearn.metrics.mean_absolute_error is an Operator
+sklearn.metrics.mean_absolute_error is a Sklearn Metric
+sklearn.metrics.mean_absolute_error implements MAE
+sklearn.metrics.mean_absolute_error evaluates Regression
+
+# ---------------------------------------------------------------------------
+# Data-quality metrics and default thresholds
+# These defaults are used for DQ checks unless the user supplies an override.
+# ---------------------------------------------------------------------------
+SyntacticDataAccuracy is a Metric
+SyntacticDataAccuracy has decision function constant_threshold
+SyntacticDataAccuracy has threshold 0.95
+SemanticDataAccuracy is a Metric
+SemanticDataAccuracy has decision function constant_threshold
+SemanticDataAccuracy has threshold 0.95
+RiskOfDatasetInaccuracy is a Metric
+RiskOfDatasetInaccuracy has decision function constant_threshold
+RiskOfDatasetInaccuracy has threshold 0.05
+DataAccuracyRange is a Metric
+DataAccuracyRange has decision function constant_threshold
+DataAccuracyRange has threshold 1.0
+ValueCompleteness is a Metric
+ValueCompleteness has decision function constant_threshold
+ValueCompleteness has threshold 0.95
+RecordCompleteness is a Metric
+RecordCompleteness has decision function constant_threshold
+RecordCompleteness has threshold 0.95
+LabelCompleteness is a Metric
+LabelCompleteness has decision function constant_threshold
+LabelCompleteness has threshold 0.95
+ValueOccurrenceCompleteness is a Metric
+ValueOccurrenceCompleteness has decision function constant_threshold
+ValueOccurrenceCompleteness has threshold 0.95
+FeatureCompleteness is a Metric
+FeatureCompleteness has decision function constant_threshold
+FeatureCompleteness has threshold 0.95
+DataRecordConsistency is a Metric
+DataRecordConsistency has decision function constant_threshold
+DataRecordConsistency has threshold 0.05
+DataLabelConsistency is a Metric
+DataLabelConsistency has decision function constant_threshold
+DataLabelConsistency has threshold 0.95
+DataFormatConsistency is a Metric
+DataFormatConsistency has decision function constant_threshold
+DataFormatConsistency has threshold 0.95
+SemanticConsistency is a Metric
+SemanticConsistency has decision function constant_threshold
+SemanticConsistency has threshold 0.95
+DataFormatEfficiency is a Metric
+DataFormatEfficiency has decision function constant_threshold
+DataFormatEfficiency has threshold 0.95
+DataProcessingEfficiency is a Metric
+DataProcessingEfficiency has decision function constant_threshold
+DataProcessingEfficiency has threshold 0.95
+RiskOfWastedSpace is a Metric
+RiskOfWastedSpace has decision function constant_threshold
+RiskOfWastedSpace has threshold 0.05
+LabelProportionBalance is a Metric
+LabelProportionBalance has decision function constant_threshold
+LabelProportionBalance has threshold 0.95
+LabelDistributionBalance is a Metric
+LabelDistributionBalance has decision function constant_threshold
+LabelDistributionBalance has threshold 0.10
+DataItemCompliance is a Metric
+DataItemCompliance has decision function constant_threshold
+DataItemCompliance has threshold 0.95
+LabelRichness is a Metric
+LabelRichness has decision function constant_threshold
+LabelRichness has threshold 0.95
+RelativeLabelAbundance is a Metric
+RelativeLabelAbundance has decision function constant_threshold
+RelativeLabelAbundance has threshold 0.95
+CategorySizeDiversity is a Metric
+CategorySizeDiversity has decision function constant_threshold
+CategorySizeDiversity has threshold 0.95
+FeatureEffectiveness is a Metric
+FeatureEffectiveness has decision function constant_threshold
+FeatureEffectiveness has threshold 0.95
+CategorySizeEffectiveness is a Metric
+CategorySizeEffectiveness has decision function constant_threshold
+CategorySizeEffectiveness has threshold 0.95
+LabelEffectiveness is a Metric
+LabelEffectiveness has decision function constant_threshold
+LabelEffectiveness has threshold 0.95
+PrecisionOfDataValues is a Metric
+PrecisionOfDataValues has decision function constant_threshold
+PrecisionOfDataValues has threshold 0.95
+FeatureRelevance is a Metric
+FeatureRelevance has decision function constant_threshold
+FeatureRelevance has threshold 0.95
+RecordRelevance is a Metric
+RecordRelevance has decision function constant_threshold
+RecordRelevance has threshold 0.95
+RepresentativenessRatio is a Metric
+RepresentativenessRatio has decision function constant_threshold
+RepresentativenessRatio has threshold 0.95
+SampleSimilarity is a Metric
+SampleSimilarity has decision function constant_threshold
+SampleSimilarity has threshold 0.95
+SampleTightness is a Metric
+SampleTightness has decision function constant_threshold
+SampleTightness has threshold 0.10
+SampleIndependency is a Metric
+SampleIndependency has decision function constant_threshold
+SampleIndependency has threshold 0.95

@@ -1,0 +1,15 @@
+# ==========================================================================
+# Session State — dorian.io.state
+#
+# Platform operator for accessing session-scoped state at pipeline
+# execution time.  At expansion time the operator + its key Parameter
+# are replaced by a resolved value Parameter.
+#
+# Supported keys (namespaced):
+#   dataset.features, dataset.target, dataset.protected_attributes,
+#   dataset.profile, session.task, session.eval
+# ==========================================================================
+
+dorian.io.state is an Operator
+dorian.io.state is a Function
+dorian.io.state performs Data Preparation

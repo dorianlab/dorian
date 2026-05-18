@@ -1,0 +1,28 @@
+# =============================================================================
+# Dorian — Tooltip Recording Overlay
+# =============================================================================
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.tooltips.yml up --build
+#
+# Disables HMAC signing so the headless Playwright browser (demo-recorder) can
+# interact with the frontend without needing crypto.subtle (which requires a
+# secure context / HTTPS).
+#
+# Uses port 8001 on the host to avoid stale port 8000 entries on Windows.
+# =============================================================================
+
+services:
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_WS_URL: ws://localhost:8001/ws
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:8001
+        NEXT_PUBLIC_HMAC_SECRET: ""
+
+  backend:
+    ports:
+      - "8001:8000"
+    environment:
+      DORIAN_ENV: tooltips
+      DORIAN_HMAC_SECRET: ""

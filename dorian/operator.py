@@ -67,12 +67,12 @@ class Operator:
                     #         emit(Event("Exception", info))    
                 else:
                     info = {
-                        'type': 'UnknownOperator',
+                        'type': 'OperatorResolutionFailed',
                         'error': f'Primitive not found, {path}',
                         'operator': self.name,
-                        'language': self.language
+                        'language': self.language,
                     }
-                    emit(Event("Exception", info))
+                    emit(Event("OperatorResolutionFailed", info))
 
                 if importlib.util.find_spec(module):
                     module = importlib.import_module(module)
@@ -80,14 +80,18 @@ class Operator:
                 else:
                     try:
                         return eval(self.name)
-                    except:
+                    except Exception as exc:
                         info = {
-                            'type': 'UnknownOperator',
+                            'type': 'OperatorResolutionFailed',
                             'error': traceback.format_exc().splitlines()[-1],
+                            'trace': traceback.format_exc(),
                             'operator': self.name,
-                            'language': self.language
+                            'language': self.language,
                         }
-                        emit(Event("Exception", info))
+                        emit(Event("OperatorResolutionFailed", info))
+                        raise RuntimeError(
+                            f"Cannot resolve operator '{self.name}': {exc}"
+                        ) from exc
             case 'method':
                 obj, *args = args
                 res = getattr(obj, self.name)(*args, **kwargs)
@@ -96,20 +100,27 @@ class Operator:
             #     return getattr(module, method)().fit_transform(*args, **kwargs)
             case 'unknown':
                 info = {
-                    'type': 'UnknownOperatorType',
+                    'type': 'OperatorResolutionFailed',
                     'error': 'extend the operators knowledge base, dorian.operator.known',
                     'operator': self.name,
-                    'language': self.language
+                    'language': self.language,
                 }
-                emit(Event("Exception", info))
+                emit(Event("OperatorResolutionFailed", info))
+                raise RuntimeError(
+                    f"Unknown operator type for '{self.name}': "
+                    "extend the operators knowledge base"
+                )
             case other:
                 info = {
-                    'type': 'WrongOperatorType',
+                    'type': 'OperatorResolutionFailed',
                     'error': f'type "{other}"',
                     'operator': self.name,
-                    'language': self.language
+                    'language': self.language,
                 }
-                emit(Event("Exception", info))
+                emit(Event("OperatorResolutionFailed", info))
+                raise RuntimeError(
+                    f"Wrong operator type '{other}' for '{self.name}'"
+                )
 
 
 def primitive(operator: Operator) -> Path:

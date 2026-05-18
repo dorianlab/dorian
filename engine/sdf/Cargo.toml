@@ -1,0 +1,13 @@
+[package]
+name = "sdf"
+description = "Synchronous Dataflow domain scheduler — cache-aware firing of SDF actors"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+graph      = { workspace = true }
+cache      = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror  = { workspace = true }

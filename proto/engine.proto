@@ -1,0 +1,87 @@
+syntax = "proto3";
+package dorian.engine;
+
+option go_package = "dorian/gateway/internal/pb/engine";
+
+import "graph.proto";
+import "execution.proto";
+import "runtime.proto";
+import "scaling.proto";
+
+// ---------------------------------------------------------------------------
+// Engine gRPC service — the primary interface between Go gateway and Rust engine.
+// ---------------------------------------------------------------------------
+
+service EngineService {
+  // ---------------------------------------------------------------------------
+  // Pipeline execution
+  // ---------------------------------------------------------------------------
+
+  // Submit a pipeline for execution. Returns a stream of state updates.
+  rpc ExecutePipeline(ExecutePipelineRequest) returns (stream dorian.execution.StateUpdate);
+
+  // Cancel a running pipeline.
+  rpc CancelPipeline(CancelPipelineRequest) returns (CancelPipelineResponse);
+
+  // Get current execution state for a pipeline run.
+  rpc GetExecutionState(GetExecutionStateRequest) returns (dorian.execution.PipelineExecution);
+
+  // ---------------------------------------------------------------------------
+  // Health and scaling
+  // ---------------------------------------------------------------------------
+
+  // Get aggregated health report (system metrics, runtime health, scaling state).
+  rpc GetHealth(GetHealthRequest) returns (dorian.scaling.HealthReport);
+
+  // Get per-runtime status.
+  rpc GetRuntimeStatus(GetRuntimeStatusRequest) returns (RuntimeStatusResponse);
+
+  // Stream health updates (for monitoring dashboards).
+  rpc StreamHealth(StreamHealthRequest) returns (stream dorian.scaling.HealthReport);
+
+  // ---------------------------------------------------------------------------
+  // Knowledge base queries (Phase 4)
+  // ---------------------------------------------------------------------------
+
+  // rpc QueryKB(KBQueryRequest) returns (KBQueryResponse);
+}
+
+// ---------------------------------------------------------------------------
+// Request / Response messages
+// ---------------------------------------------------------------------------
+
+message ExecutePipelineRequest {
+  dorian.graph.ProcessGraph graph = 1;
+  string session_id  = 2;
+  string pipeline_id = 3;
+  string uid         = 4;
+  string run_id      = 5;
+
+  // Runtime context (vault nonce, dataset refs, etc.).
+  map<string, string> context = 6;
+}
+
+message CancelPipelineRequest {
+  string run_id = 1;
+}
+
+message CancelPipelineResponse {
+  bool acknowledged = 1;
+  string message = 2;
+}
+
+message GetExecutionStateRequest {
+  string run_id = 1;
+}
+
+message GetHealthRequest {}
+
+message GetRuntimeStatusRequest {}
+
+message RuntimeStatusResponse {
+  repeated dorian.runtime.RuntimeHealth runtimes = 1;
+}
+
+message StreamHealthRequest {
+  double interval_seconds = 1; // how often to push updates (default 5.0)
+}

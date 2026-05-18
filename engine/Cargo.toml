@@ -1,0 +1,133 @@
+[workspace]
+resolver = "2"
+members = [
+    "types",
+    "graph",
+    "cache",
+    "sdf",
+    "de",
+    "compose",
+    "shadow",
+    "cli",
+    "directors",
+    "optimizer",
+    "dispatch",
+    "scaling",
+    "xproduct",
+    "automl",
+    "rl",
+    "dorian-engines",
+    "engine",
+    "native",
+    "gateway",
+    "backend",
+    "extractor",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/dorian-ai/dorian"
+
+[workspace.dependencies]
+# Internal crates
+types     = { path = "types" }
+graph     = { path = "graph" }
+cache     = { path = "cache" }
+sdf       = { path = "sdf" }
+de        = { path = "de" }
+compose   = { path = "compose" }
+directors = { path = "directors" }
+optimizer = { path = "optimizer" }
+extractor = { path = "extractor" }
+dispatch  = { path = "dispatch" }
+scaling   = { path = "scaling" }
+xproduct  = { path = "xproduct" }
+automl    = { path = "automl" }
+
+# Serialization
+serde       = { version = "1", features = ["derive"] }
+serde_json  = "1"
+
+# HTTP server (gateway crate)
+axum        = { version = "0.7", features = ["ws", "macros"] }
+tower       = { version = "0.5", features = ["timeout", "limit"] }
+tower-http  = { version = "0.6", features = ["trace", "cors"] }
+
+# gRPC / protobuf
+tonic       = "0.12"
+tonic-build = "0.12"
+prost       = "0.13"
+prost-types = "0.13"
+
+# Async runtime
+tokio        = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+
+# Data structures
+rustc-hash    = "2"
+ordered-float = "5"
+petgraph      = "0.7"
+chrono        = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+rayon         = "1"
+
+# Redis
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+
+# Logging / tracing
+log                = "0.4"
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "2"
+anyhow    = "1"
+
+# Python interop
+pyo3 = { version = "0.24", features = ["extension-module"] }
+
+# UUID
+uuid = { version = "1", features = ["v4", "v5"] }
+
+# Regex
+regex = "1"
+
+# Neo4j (bolt protocol)
+neo4rs = "0.8"
+
+# LRU cache
+lru = "0.12"
+
+# Hashing for content-addressable cache keys
+sha2 = "0.10"
+
+# Fast RwLock for in-process cache store
+parking_lot = "0.12"
+
+# Arrow IPC — Tier-2 cache payload format. Zero-copy across the
+# Rust/PyO3 boundary via the C Data Interface (matched by pyarrow on
+# the Python side). Single dep brings array + IPC reader/writer.
+arrow = { version = "53", default-features = false, features = ["ipc"] }
+
+# Mmap-backed reads of cache entries. The arrow IPC FileReader can
+# work on any Read+Seek source; mmap means the kernel page-caches
+# the file once and every reader gets a zero-copy view of the same
+# bytes — the cross-process win for the Tier-2 store.
+memmap2 = "0.9"
+
+# Used by the Tier-2 cache for atomic file writes (write to tmp, then
+# rename) and by tests for ephemeral cache directories.
+tempfile = "3"
+
+# Bytes — used as the cache payload type for the arrow store; cheap
+# clones (Arc-backed) so the cache returns Bytes to callers without
+# copying the underlying buffer.
+bytes = "1"
+
+# Postgres client — used by the xproduct engine to query
+# `pairs_to_complete` (datasets × pipelines minus evaluations) and
+# by other crates that need direct DB access without going through
+# the Python facade.
+tokio-postgres    = { version = "0.7", features = ["with-serde_json-1", "with-chrono-0_4"] }
+deadpool-postgres = "0.14"

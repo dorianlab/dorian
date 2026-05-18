@@ -1,0 +1,17 @@
+[package]
+name = "dem-cli"
+description = "Command-line tool for DEM inspection and cache planning"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "dem-cli"
+path = "src/main.rs"
+
+[dependencies]
+graph      = { workspace = true }
+cache      = { workspace = true }
+sdf        = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+anyhow     = { workspace = true }

@@ -1,0 +1,17 @@
+# Ranking Objective is a Core Concept
+Good Performance On Similar Data is a Ranking Objective
+dorian.toolbox.ranking.objectives.GoodPerformanceOnSimilarData implements Good Performance On Similar Data
+
+Ranking Objective implements Function
+
+Good General Performance is a Ranking Objective
+dorian.toolbox.ranking.objectives.good_general_performance implements Good General Performance
+ 
+Previously Unseen is a Ranking Objective
+dorian.toolbox.ranking.objectives.previously_unseen implements Previously Unseen
+ 
+Atomic Changes is a Ranking Objective
+dorian.toolbox.ranking.objectives.atomic_changes implements Atomic Changes
+
+Faster Execution is a Ranking Objective
+dorian.toolbox.ranking.objectives.faster_execution implements Faster Execution

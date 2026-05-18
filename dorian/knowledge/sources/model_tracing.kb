@@ -1,0 +1,87 @@
+# ==========================================================================
+# Model Tracing — Family-level shared parameters
+# ==========================================================================
+
+Model Specific Tracer has parameter output_dir; is of type str; with default outputs/traces
+Model Specific Tracer has parameter feature_names; is of type eval; with default None
+
+Model Agnostic Tracer has parameter output_dir; is of type str; with default traces
+Model Agnostic Tracer has parameter feature_names; is of type eval; with default None
+
+# ==========================================================================
+# Model-Specific Tracers — Simple Models (Model Tracer interface)
+# ==========================================================================
+
+model_tracing.DecisionTreeTracer is an Operator
+model_tracing.DecisionTreeTracer is a Model Tracer
+model_tracing.DecisionTreeTracer is subclass of Model Specific Tracer
+model_tracing.DecisionTreeTracer performs Model Tracing
+model_tracing.DecisionTreeTracer applies to sklearn.tree.DecisionTreeClassifier
+model_tracing.DecisionTreeTracer has parameter output_dir; is of type str; with default outputs/dt_traces
+
+model_tracing.LinearRegressionTracer is an Operator
+model_tracing.LinearRegressionTracer is a Model Tracer
+model_tracing.LinearRegressionTracer is subclass of Model Specific Tracer
+model_tracing.LinearRegressionTracer performs Model Tracing
+model_tracing.LinearRegressionTracer applies to sklearn.linear_model.LinearRegression
+model_tracing.LinearRegressionTracer has parameter output_dir; is of type str; with default outputs/linreg_traces
+
+model_tracing.LogisticRegressionTracer is an Operator
+model_tracing.LogisticRegressionTracer is a Model Tracer
+model_tracing.LogisticRegressionTracer is subclass of Model Specific Tracer
+model_tracing.LogisticRegressionTracer performs Model Tracing
+model_tracing.LogisticRegressionTracer applies to sklearn.linear_model.LogisticRegression
+model_tracing.LogisticRegressionTracer has parameter output_dir; is of type str; with default outputs/logreg_traces
+
+model_tracing.RandomForestTracer is an Operator
+model_tracing.RandomForestTracer is a Model Tracer
+model_tracing.RandomForestTracer is subclass of Model Specific Tracer
+model_tracing.RandomForestTracer performs Model Tracing
+model_tracing.RandomForestTracer applies to sklearn.ensemble.RandomForestClassifier
+model_tracing.RandomForestTracer has parameter output_dir; is of type str; with default outputs/rf_traces
+
+model_tracing.SVMTracer is an Operator
+model_tracing.SVMTracer is a Model Tracer
+model_tracing.SVMTracer is subclass of Model Specific Tracer
+model_tracing.SVMTracer performs Model Tracing
+model_tracing.SVMTracer applies to sklearn.svm.SVC
+model_tracing.SVMTracer has parameter output_dir; is of type str; with default outputs/svm_traces
+
+# ==========================================================================
+# Model-Agnostic Tracers (Model Agnostic Tracer interface)
+# ==========================================================================
+
+model_tracing.LIMETracer is an Operator
+model_tracing.LIMETracer is a Model Agnostic Tracer
+model_tracing.LIMETracer is subclass of Model Agnostic Tracer
+model_tracing.LIMETracer performs Model Explainability
+model_tracing.LIMETracer has parameter output_dir; is of type str; with default lime_traces
+model_tracing.LIMETracer has parameter class_names; is of type eval; with default None
+
+model_tracing.SHAPTracer is an Operator
+model_tracing.SHAPTracer is a Model Agnostic Tracer
+model_tracing.SHAPTracer is subclass of Model Agnostic Tracer
+model_tracing.SHAPTracer performs Model Explainability
+model_tracing.SHAPTracer has parameter output_dir; is of type str; with default shap_traces
+
+# ==========================================================================
+# Complex Model Tracers (Model Tracer interface)
+# ==========================================================================
+
+model_tracing.GNNTracer is an Operator
+model_tracing.GNNTracer is a Model Tracer
+model_tracing.GNNTracer is subclass of Model Specific Tracer
+model_tracing.GNNTracer performs Model Tracing
+model_tracing.GNNTracer applies to model_tracing.GCN
+model_tracing.GNNTracer has parameter output_dir; is of type str; with default outputs/gnn_traces
+model_tracing.GNNTracer has parameter num_epochs; is of type int; with default 200; with low 1; with high 10000
+model_tracing.GNNTracer has parameter lr; is of type float; with default 0.01; with low 0.0001; with high 1.0
+model_tracing.GNNTracer has parameter weight_decay; is of type float; with default 0.0005; with low 0.0; with high 0.1
+
+model_tracing.InductiveLogicProgTracer is an Operator
+model_tracing.InductiveLogicProgTracer is a Model Tracer
+model_tracing.InductiveLogicProgTracer is subclass of Model Specific Tracer
+model_tracing.InductiveLogicProgTracer performs Model Tracing
+model_tracing.InductiveLogicProgTracer applies to model_tracing.InductiveLogicProgrammingModel
+model_tracing.InductiveLogicProgTracer has parameter output_dir; is of type str; with default outputs/ilp_traces
+model_tracing.InductiveLogicProgTracer has parameter target_predicate; is of type str; with default target

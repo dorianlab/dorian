@@ -1,0 +1,70 @@
+[package]
+name        = "gateway"
+version     = { workspace = true }
+edition     = { workspace = true }
+license     = { workspace = true }
+description = "Rust+Tokio HTTP gateway — retiring gateway/cmd/gateway (Go)."
+
+[[bin]]
+name = "dorian-gateway"
+path = "src/main.rs"
+
+[dependencies]
+# Runtime
+tokio              = { workspace = true }
+tokio-stream       = { workspace = true }
+
+# HTTP
+axum               = { workspace = true }
+tower              = { workspace = true }
+tower-http         = { workspace = true }
+
+# Reverse proxy / outbound HTTP
+reqwest            = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+bytes              = "1"
+http               = "1"
+futures-util       = "0.3"
+# WebSocket reverse-proxy: axum upgrades the inbound /ws/*, opens a
+# client socket to the python backend's /ws/* endpoint, bidirectional copy.
+tokio-tungstenite  = "0.24"
+
+# HMAC auth
+hmac               = "0.12"
+sha2               = { workspace = true }
+hex                = "0.4"
+
+# Storage
+redis              = { workspace = true }
+# Postgres — `/contact/*` writes JSONB documents into
+# `doc_contact_submissions`. Same crates the rust-backend uses
+# so the workspace lockfile is stable.
+tokio-postgres     = { version = "0.7", features = ["with-serde_json-1"] }
+deadpool-postgres  = "0.14"
+
+# Internal — KB snapshot loader (used by the catalog routes that
+# replaced the python ``/operators`` etc.)
+optimizer          = { workspace = true }
+rustc-hash         = { workspace = true }
+
+# IDs + time
+uuid               = { workspace = true }
+chrono             = { workspace = true }
+
+# Observability
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+anyhow             = { workspace = true }
+thiserror          = { workspace = true }
+
+# Serialization
+serde              = { workspace = true }
+serde_json         = { workspace = true }
+# msgpack codec — native WS endpoint reads/writes msgpack frames
+# end-to-end with the SPA (replaces ``dorian/api/websocket.py``'s
+# python-side ``msgpack.unpackb``/``msgpack.packb`` calls). Shape
+# parity with the python `msgpack` library: maps round-trip as
+# ``Value::Map``, raw=False so str fields decode to UTF-8.
+rmp-serde          = "1"
+rmpv               = { version = "1", features = ["with-serde"] }

@@ -1,0 +1,17 @@
+{
+  "description": "Expand a call's argument_list into positional edges. Walks the dag-edge list (preserves source order) and assigns positions 0..N. Parameter children (already promoted from keyword_argument by an earlier rule) wire as kwargs — position is the parameter name, not the slot index.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "call", "language": "python"},
+      "1": {"type": "argument_list", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "expand_arg_list",
+     "call_key": "0",
+     "argument_list_key": "1"}
+  ]
+}

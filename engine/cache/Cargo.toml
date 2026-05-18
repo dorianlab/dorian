@@ -1,0 +1,21 @@
+[package]
+name = "cache"
+description = "Content-addressable cache for DEM actor firings — Tier-1 reuse primitive"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+graph        = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+rustc-hash   = { workspace = true }
+thiserror    = { workspace = true }
+sha2         = { workspace = true }
+parking_lot  = { workspace = true }
+arrow        = { workspace = true }
+memmap2      = { workspace = true }
+bytes        = { workspace = true }
+log          = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

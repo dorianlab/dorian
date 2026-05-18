@@ -1,0 +1,14 @@
+{
+  "description": "Drop single-character punctuation tokens (parens, commas, colons, dots).",
+  "pattern": {
+    "nodes": {
+      "0": {
+        "type": "^[\\(\\)\\[\\]\\{\\},:.\\.\\=\\+\\-\\*/<>!&\\|\\^~%@;]$",
+        "language": "python"
+      }
+    }
+  },
+  "transformations": [
+    {"type": "delete", "nodes": ["0"], "mode": "isolated"}
+  ]
+}

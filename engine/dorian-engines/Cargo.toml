@@ -1,0 +1,18 @@
+[package]
+name = "dorian-engines"
+description = "Supervisor binary running every Rust engine (RL, AutoML, Cross-product) as concurrent tokio tasks"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "dorian-engines"
+path = "src/main.rs"
+
+[dependencies]
+xproduct = { workspace = true }
+automl   = { workspace = true }
+
+tokio              = { workspace = true }
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow             = { workspace = true }

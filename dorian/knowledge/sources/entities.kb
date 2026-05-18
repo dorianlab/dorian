@@ -1,0 +1,18 @@
+Person is an Entity
+First Name attributes to Person
+Middle Name attributes to Person
+Last Name attributes to Person
+Date of Birth attributes to Person
+Age attributes to Person
+Gender attributes to Person
+Race attributes to Person
+Ethnicity attributes to Person
+Disability status attributes to Person
+Religion attributes to Person
+Sexual orientation attributes to Person
+National origin attributes to Person
+Marital status attributes to Person
+Socioeconomic status attributes to Person
+
+# Gender is protected against Bias
+# Race is protected against Bias

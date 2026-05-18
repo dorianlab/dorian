@@ -77,8 +77,15 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+#
+# PIPELINE_MODE controls which graph pipeline runs after JSON export:
+#   "kb_source" (default) — generates sources/{library}_generated.py files.
+#   The Neo4j writer was retired with the rust KB snapshot port; if a
+#   future pipeline appends DSL to a ``.kb`` file directly, register it
+#   here under a new ``PIPELINE_MODE`` value.
 ITEM_PIPELINES = {
-   "dorian.knowledge.collection.pipelines.SeparateJsonExportPipeline": 300,
+    "dorian.knowledge.collection.pipelines.SeparateJsonExportPipeline": 300,
+    "dorian.knowledge.collection.pipelines.KBSourcePipeline": 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -1,0 +1,15 @@
+[package]
+name = "compose"
+description = "Hierarchical DEM composition — SDF-in-DE and DE-in-SDF handoff protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+graph      = { workspace = true }
+cache      = { workspace = true }
+sdf        = { workspace = true }
+de         = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror  = { workspace = true }

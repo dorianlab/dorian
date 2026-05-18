@@ -1,0 +1,14 @@
+[package]
+name = "shadow"
+description = "Shadow-mode comparator — run one graph through two schedulers, diff outcomes"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+graph      = { workspace = true }
+cache      = { workspace = true }
+sdf        = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror  = { workspace = true }

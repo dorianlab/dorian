@@ -1,0 +1,14 @@
+[package]
+name = "scaling"
+description = "Elastic scaling controller and resource monitoring"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+types    = { workspace = true }
+dispatch = { workspace = true }
+tokio           = { workspace = true }
+tracing         = { workspace = true }
+thiserror       = { workspace = true }
+serde           = { workspace = true }
+serde_json      = { workspace = true }

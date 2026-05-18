@@ -1,0 +1,103 @@
+syntax = "proto3";
+package dorian.scaling;
+
+option go_package = "dorian/gateway/internal/pb/scaling";
+
+import "runtime.proto";
+
+// ---------------------------------------------------------------------------
+// Elastic scaling protocol.
+//
+// The scaling controller monitors host/container resources and runtime health,
+// then makes scaling decisions. Works identically on bare metal and in
+// containers — the only difference is the resource ceiling source
+// (cgroup vs /proc).
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Resource metrics (collected by the monitor)
+// ---------------------------------------------------------------------------
+
+message ResourceMetrics {
+  double cpu_percent    = 1; // 0.0 – 100.0
+  double memory_percent = 2; // 0.0 – 100.0
+  uint64 memory_used_bytes   = 3;
+  uint64 memory_total_bytes  = 4;
+  double disk_percent   = 5;
+  uint64 disk_used_bytes     = 6;
+  uint64 disk_total_bytes    = 7;
+
+  // Whether resource limits came from cgroup (container) or physical hardware.
+  ResourceSource source = 8;
+
+  double timestamp = 9; // unix timestamp
+}
+
+enum ResourceSource {
+  RESOURCE_SOURCE_UNSPECIFIED = 0;
+  RESOURCE_SOURCE_BARE_METAL  = 1; // /proc, sysinfo
+  RESOURCE_SOURCE_CGROUP_V1   = 2;
+  RESOURCE_SOURCE_CGROUP_V2   = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Scaling decisions
+// ---------------------------------------------------------------------------
+
+enum ScalingAction {
+  SCALING_ACTION_UNSPECIFIED = 0;
+  SCALING_ACTION_NONE        = 1; // no change needed
+  SCALING_ACTION_SCALE_UP    = 2; // add workers
+  SCALING_ACTION_SCALE_DOWN  = 3; // remove workers
+  SCALING_ACTION_EMERGENCY   = 4; // force to minimum (disk pressure, OOM risk)
+}
+
+message ScalingDecision {
+  dorian.runtime.RuntimeKind target_runtime = 1;
+  ScalingAction action       = 2;
+  int32 current_workers      = 3;
+  int32 desired_workers      = 4;
+  string reason              = 5; // human-readable reason
+  double timestamp           = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Scaling policy configuration
+// ---------------------------------------------------------------------------
+
+message ScalingPolicy {
+  dorian.runtime.RuntimeKind runtime_kind = 1;
+  int32 min_workers = 2;
+  int32 max_workers = 3;
+
+  // Scale-up thresholds (any triggers scale-up).
+  double cpu_scale_up_threshold    = 4;  // default 85.0
+  double memory_scale_up_threshold = 5;  // default 80.0
+  int32  queue_depth_scale_up      = 6;  // scale up when queue > this
+
+  // Scale-down thresholds (all must be true to scale down).
+  double cpu_scale_down_threshold    = 7;  // default 30.0
+  double memory_scale_down_threshold = 8;  // default 30.0
+
+  // Disk safety.
+  double disk_emergency_threshold = 9; // default 90.0
+
+  // Timing.
+  double cooldown_seconds = 10; // default 30.0
+  int32  scale_step       = 11; // workers to add/remove per decision (default 1)
+}
+
+// ---------------------------------------------------------------------------
+// Health report (aggregates all runtime health + system metrics)
+// ---------------------------------------------------------------------------
+
+message HealthReport {
+  ResourceMetrics system = 1;
+  repeated dorian.runtime.RuntimeHealth runtimes = 2;
+  repeated ScalingDecision recent_decisions = 3; // last N decisions
+
+  // Engine-level admission control state.
+  int32 total_inflight_pipelines = 4;
+  int32 max_inflight_pipelines   = 5;
+  bool  accepting_submissions    = 6;
+}

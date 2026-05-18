@@ -1,0 +1,16 @@
+[package]
+name = "rl"
+description = "Reinforcement-learning engine — policy core, action space, env contract"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rand       = "0.8"
+rustc-hash = { workspace = true }
+parking_lot = { workspace = true }
+tracing    = { workspace = true }
+thiserror  = { workspace = true }
+
+[dev-dependencies]

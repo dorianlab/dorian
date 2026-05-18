@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use Dorian in academic work, please cite the thesis below and this software record."
+title: "Dorian: a human-in-the-loop framework for the assisted design of data science pipelines"
+abstract: "Reference implementation of Dorian, the assisted-design framework for end-to-end data science pipelines presented in the PhD thesis Assisted Design of End-to-End Data Science Pipelines (Redyuk, TU Berlin, 2026). Includes the recommendation engine, Experiment Store, DS Pipeline Extractor, runtime observability, the three-lateral background generation engine, the data-quality validator, and the prediction-validation prototype."
+type: software
+authors:
+  - family-names: Redyuk
+    given-names: Sergey
+    orcid: "https://orcid.org/0000-0001-7131-745X"
+    affiliation: "DFKI"
+version: 0.1.0
+date-released: 2024-02-13
+license: Apache-2.0
+repository-code: "https://github.com/dorianlab/dorian"
+keywords:
+  - data science pipelines
+  - AutoML
+  - intelligent discovery assistant
+  - human-in-the-loop
+  - recommendation systems
+  - knowledge graph
+  - experiment management
+  - data quality validation
+  - Python
+references:
+  - type: thesis
+    title: "Assisted Design of End-to-End Data Science Pipelines"
+    authors:
+      - family-names: Redyuk
+        given-names: Sergey
+        orcid: "https://orcid.org/0000-0001-7131-745X"
+    institution:
+      name: "Technische Universität Berlin"
+    year: 2026
+    thesis-type: "PhD thesis"

@@ -1,0 +1,146 @@
+# ==========================================================================
+# Classifier hyperparameter tuning domains
+# ==========================================================================
+
+sklearn.ensemble.AdaBoostClassifier has parameter n_estimators; is of type int; with default 50; with low 50; with high 500
+sklearn.ensemble.AdaBoostClassifier has parameter learning_rate; is of type float; with default 1.0; with low 0.01; with high 2.0; with log scale True
+
+sklearn.naive_bayes.BernoulliNB has parameter alpha; is of type float; with default 1.0; with low 0.01; with high 100.0; with log scale True
+sklearn.naive_bayes.BernoulliNB has parameter fit_prior; is of type bool; with default True
+
+sklearn.tree.DecisionTreeClassifier has parameter max_depth; is of type int; with low 1; with high 20
+sklearn.tree.DecisionTreeClassifier has parameter min_samples_split; is of type int; with default 2; with low 2; with high 20
+sklearn.tree.DecisionTreeClassifier has parameter min_samples_leaf; is of type int; with default 1; with low 1; with high 20
+sklearn.tree.DecisionTreeClassifier has parameter criterion; is of type categorical; with default gini; with choices gini,entropy
+
+sklearn.ensemble.ExtraTreesClassifier has parameter n_estimators; is of type int; with default 100; with low 10; with high 500
+sklearn.ensemble.ExtraTreesClassifier has parameter max_depth; is of type int; with low 1; with high 20
+sklearn.ensemble.ExtraTreesClassifier has parameter min_samples_split; is of type int; with default 2; with low 2; with high 20
+sklearn.ensemble.ExtraTreesClassifier has parameter min_samples_leaf; is of type int; with default 1; with low 1; with high 20
+sklearn.ensemble.ExtraTreesClassifier has parameter criterion; is of type categorical; with default gini; with choices gini,entropy
+
+sklearn.ensemble.GradientBoostingClassifier has parameter n_estimators; is of type int; with default 100; with low 50; with high 500
+sklearn.ensemble.GradientBoostingClassifier has parameter learning_rate; is of type float; with default 0.1; with low 0.01; with high 1.0; with log scale True
+sklearn.ensemble.GradientBoostingClassifier has parameter max_depth; is of type int; with default 3; with low 1; with high 10
+sklearn.ensemble.GradientBoostingClassifier has parameter min_samples_split; is of type int; with default 2; with low 2; with high 20
+sklearn.ensemble.GradientBoostingClassifier has parameter min_samples_leaf; is of type int; with default 1; with low 1; with high 20
+sklearn.ensemble.GradientBoostingClassifier has parameter subsample; is of type float; with default 1.0; with low 0.5; with high 1.0
+
+sklearn.neighbors.KNeighborsClassifier has parameter n_neighbors; is of type int; with default 5; with low 1; with high 50
+sklearn.neighbors.KNeighborsClassifier has parameter weights; is of type categorical; with default uniform; with choices uniform,distance
+sklearn.neighbors.KNeighborsClassifier has parameter p; is of type int; with default 2; with low 1; with high 3
+
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis has parameter shrinkage; is of type categorical; with choices None,auto
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis has parameter solver; is of type categorical; with default svd; with choices svd,lsqr,eigen
+
+sklearn.svm.LinearSVC has parameter C; is of type float; with default 1.0; with low 0.0001; with high 25.0; with log scale True
+sklearn.svm.LinearSVC has parameter loss; is of type categorical; with default squared_hinge; with choices hinge,squared_hinge
+sklearn.svm.LinearSVC has parameter tol; is of type float; with default 0.0001; with low 1e-05; with high 0.1; with log scale True
+sklearn.svm.LinearSVC has parameter dual; is of type bool; with default True
+
+sklearn.neural_network.MLPClassifier has parameter hidden_layer_sizes; is of type int; with default 100; with low 16; with high 512
+sklearn.neural_network.MLPClassifier has parameter alpha; is of type float; with default 0.0001; with low 1e-07; with high 0.1; with log scale True
+sklearn.neural_network.MLPClassifier has parameter learning_rate_init; is of type float; with default 0.001; with low 0.0001; with high 0.1; with log scale True
+sklearn.neural_network.MLPClassifier has parameter activation; is of type categorical; with default relu; with choices relu,tanh
+
+sklearn.naive_bayes.MultinomialNB has parameter alpha; is of type float; with default 1.0; with low 0.01; with high 100.0; with log scale True
+sklearn.naive_bayes.MultinomialNB has parameter fit_prior; is of type bool; with default True
+
+sklearn.linear_model.PassiveAggressiveClassifier has parameter C; is of type float; with default 1.0; with low 1e-05; with high 10.0; with log scale True
+sklearn.linear_model.PassiveAggressiveClassifier has parameter loss; is of type categorical; with default hinge; with choices hinge,squared_hinge
+sklearn.linear_model.PassiveAggressiveClassifier has parameter fit_intercept; is of type bool; with default True
+
+sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis has parameter reg_param; is of type float; with default 0.0; with low 0.0; with high 1.0
+
+sklearn.ensemble.RandomForestClassifier has parameter n_estimators; is of type int; with default 100; with low 10; with high 500
+sklearn.ensemble.RandomForestClassifier has parameter max_depth; is of type int; with low 1; with high 20
+sklearn.ensemble.RandomForestClassifier has parameter min_samples_split; is of type int; with default 2; with low 2; with high 20
+sklearn.ensemble.RandomForestClassifier has parameter min_samples_leaf; is of type int; with default 1; with low 1; with high 20
+sklearn.ensemble.RandomForestClassifier has parameter criterion; is of type categorical; with default gini; with choices gini,entropy
+sklearn.ensemble.RandomForestClassifier has parameter max_features; is of type categorical; with default sqrt; with choices sqrt,log2,None
+
+sklearn.linear_model.SGDClassifier has parameter alpha; is of type float; with default 0.0001; with low 1e-07; with high 0.1; with log scale True
+sklearn.linear_model.SGDClassifier has parameter loss; is of type categorical; with default hinge; with choices hinge,log_loss,modified_huber,perceptron
+sklearn.linear_model.SGDClassifier has parameter penalty; is of type categorical; with default l2; with choices l2,l1,elasticnet
+sklearn.linear_model.SGDClassifier has parameter learning_rate; is of type categorical; with default optimal; with choices optimal,invscaling,constant,adaptive
+sklearn.linear_model.SGDClassifier has parameter eta0; is of type float; with default 0.0; with low 1e-07; with high 0.1; with log scale True
+sklearn.linear_model.SGDClassifier has parameter fit_intercept; is of type bool; with default True
+
+sklearn.svm.SVC has parameter C; is of type float; with default 1.0; with low 0.0001; with high 25.0; with log scale True
+sklearn.svm.SVC has parameter kernel; is of type categorical; with default rbf; with choices linear,poly,rbf,sigmoid
+sklearn.svm.SVC has parameter gamma; is of type categorical; with default scale; with choices scale,auto
+sklearn.svm.SVC has parameter shrinking; is of type bool; with default True
+sklearn.svm.SVC has parameter tol; is of type float; with default 0.001; with low 1e-05; with high 0.1; with log scale True
+
+# ==========================================================================
+# Imputation
+# ==========================================================================
+
+sklearn.impute.SimpleImputer has parameter strategy; is of type categorical; with default mean; with choices mean,median,most_frequent
+
+# ==========================================================================
+# Scaling / Normalization
+# ==========================================================================
+
+sklearn.preprocessing.StandardScaler has parameter with_mean; is of type bool; with default True
+sklearn.preprocessing.StandardScaler has parameter with_std; is of type bool; with default True
+
+sklearn.preprocessing.RobustScaler has parameter with_centering; is of type bool; with default True
+sklearn.preprocessing.RobustScaler has parameter with_scaling; is of type bool; with default True
+# quantile_range omitted — tuple-valued choices cannot be represented in
+# the KB DSL (`;` is the chain separator).  The sklearn default (25.0, 75.0)
+# is used by the generation engine when no ParameterSpec is present.
+
+sklearn.preprocessing.Normalizer has parameter norm; is of type categorical; with default l2; with choices l1,l2,max
+
+sklearn.preprocessing.QuantileTransformer has parameter n_quantiles; is of type int; with default 1000; with low 10; with high 2000
+sklearn.preprocessing.QuantileTransformer has parameter output_distribution; is of type categorical; with default uniform; with choices uniform,normal
+
+sklearn.preprocessing.PowerTransformer has parameter method; is of type categorical; with default yeo-johnson; with choices yeo-johnson,box-cox
+sklearn.preprocessing.PowerTransformer has parameter standardize; is of type bool; with default True
+
+# ==========================================================================
+# Encoding
+# ==========================================================================
+
+sklearn.preprocessing.OneHotEncoder has parameter handle_unknown; is of type categorical; with default error; with choices error,ignore
+
+# ==========================================================================
+# Decomposition / Dimensionality Reduction
+# ==========================================================================
+
+sklearn.decomposition.FastICA has parameter n_components; is of type int; with low 2; with high 100
+sklearn.decomposition.FastICA has parameter algorithm; is of type categorical; with default parallel; with choices parallel,deflation
+
+sklearn.decomposition.KernelPCA has parameter n_components; is of type int; with low 2; with high 100
+sklearn.decomposition.KernelPCA has parameter kernel; is of type categorical; with default linear; with choices linear,poly,rbf,sigmoid,cosine
+sklearn.decomposition.KernelPCA has parameter gamma; is of type float; with low 0.3; with high 10000.0; with log scale True
+
+sklearn.decomposition.PCA has parameter n_components; is of type float; with low 0.5; with high 0.9999
+sklearn.decomposition.PCA has parameter whiten; is of type bool; with default False
+
+sklearn.decomposition.TruncatedSVD has parameter n_components; is of type int; with default 2; with low 2; with high 256
+
+# ==========================================================================
+# Feature Engineering / Selection
+# ==========================================================================
+
+sklearn.kernel_approximation.RBFSampler has parameter n_components; is of type int; with default 100; with low 10; with high 500
+sklearn.kernel_approximation.RBFSampler has parameter gamma; is of type float; with default 1.0; with low 0.3; with high 10000.0; with log scale True
+
+sklearn.kernel_approximation.Nystroem has parameter n_components; is of type int; with default 100; with low 10; with high 500
+sklearn.kernel_approximation.Nystroem has parameter kernel; is of type categorical; with default rbf; with choices linear,poly,rbf,sigmoid,cosine
+sklearn.kernel_approximation.Nystroem has parameter gamma; is of type float; with low 0.3; with high 10000.0; with log scale True
+
+sklearn.preprocessing.PolynomialFeatures has parameter degree; is of type int; with default 2; with low 2; with high 3
+sklearn.preprocessing.PolynomialFeatures has parameter interaction_only; is of type bool; with default False
+sklearn.preprocessing.PolynomialFeatures has parameter include_bias; is of type bool; with default True
+
+sklearn.ensemble.RandomTreesEmbedding has parameter n_estimators; is of type int; with default 100; with low 10; with high 500
+sklearn.ensemble.RandomTreesEmbedding has parameter max_depth; is of type int; with default 5; with low 2; with high 10
+
+sklearn.feature_selection.SelectPercentile has parameter percentile; is of type int; with default 10; with low 1; with high 99
+sklearn.feature_selection.SelectKBest has parameter k; is of type int; with default 10; with low 1; with high 100
+
+sklearn.cluster.FeatureAgglomeration has parameter n_clusters; is of type int; with default 2; with low 2; with high 25
+sklearn.cluster.FeatureAgglomeration has parameter linkage; is of type categorical; with default ward; with choices ward,complete,average

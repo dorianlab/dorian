@@ -1,0 +1,18 @@
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "dorian-native"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Compiled hot paths for Dorian: validator, GED, BK-Tree, ExperimentGraph index, ranking"
+
+[tool.maturin]
+# PyO3's ``extension-module`` feature keeps the compiled wheel
+# runtime-portable (no libpython dependency).
+features = ["pyo3/extension-module"]
+# Name the imported module matches the crate's [lib] name in
+# ``Cargo.toml`` (``dorian_native``). No ``python-source`` — this
+# crate is a thin PyO3 shim with no Python-side scaffolding.
+module-name = "dorian_native"

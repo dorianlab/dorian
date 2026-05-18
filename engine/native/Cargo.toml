@@ -1,0 +1,24 @@
+[package]
+name = "native"
+description = "PyO3 extension module — thin shim re-exporting from workspace crates"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+# Keep `dorian_native` as the lib name so Python `import dorian_native` continues working.
+name = "dorian_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+graph      = { workspace = true }
+cache      = { workspace = true }
+sdf        = { workspace = true }
+directors  = { workspace = true }
+dispatch   = { workspace = true }
+optimizer  = { workspace = true }
+extractor  = { workspace = true }
+pyo3       = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rustc-hash = { workspace = true }
+rayon      = { workspace = true }

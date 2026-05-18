@@ -1,0 +1,22 @@
+[package]
+name = "optimizer"
+description = "Meta-director, knowledge base queries, ranking algorithms"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+types = { workspace = true }
+graph = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+rustc-hash   = { workspace = true }
+ordered-float = { workspace = true }
+petgraph     = { workspace = true }
+rayon        = { workspace = true }
+thiserror    = { workspace = true }
+neo4rs       = { workspace = true }
+lru          = { workspace = true }
+tokio        = { workspace = true }
+tracing      = { workspace = true }
+log          = { workspace = true }
+uuid         = { workspace = true }

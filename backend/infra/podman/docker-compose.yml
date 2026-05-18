@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mongodb:
+    build:
+      context: .
+      dockerfile: mongo.containerfile
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - monitoring-net
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: fastapi.containerfile
+    environment:
+      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - monitoring-net
+
+  prometheus:
+    build:
+      context: .
+      dockerfile: prometheus.containerfile
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring-net
+
+volumes:
+  mongo_data:
+  prometheus_data:
+
+networks:
+  monitoring-net:
+    driver: bridge

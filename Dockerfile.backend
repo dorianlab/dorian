@@ -1,0 +1,79 @@
+# =============================================================================
+# Dorian Backend — Thin image for volume-based dev workflow
+# =============================================================================
+# Dependencies live in a named Docker volume (backend_venv), NOT baked into
+# the image.  This eliminates:
+#   - 5-minute "exporting layers" for 12 GB images
+#   - Re-downloading 3 GB of torch/CUDA on every Dockerfile change
+#   - Slow rebuilds when only Python source changed
+#
+# First run:  docker compose up --build  (installs deps into volume ~once)
+# Later runs: docker compose up           (instant — volume already populated)
+# After lockfile change:  docker compose up --build  (incremental uv sync)
+# =============================================================================
+
+FROM docker.io/library/python:3.13-slim-bookworm
+COPY --from=ghcr.io/astral-sh/uv:0.9.8 /uv /bin/uv
+# NOTE: ghcr.io is already fully qualified — no podman registry prompt.
+
+# Use system Python; never download a managed interpreter.
+# UV_LINK_MODE=copy avoids hardlink warnings across filesystem boundaries.
+ENV UV_PYTHON_PREFERENCE=only-system
+ENV UV_LINK_MODE=copy
+
+# System deps.
+#   - swi-prolog:       optional model-tracing ILP tracer
+#   - build-essential:  cc/ld for the cargo toolchain linking dorian_native
+#   - curl + ca-certs:  required by the rustup-init installer below
+#   - pkg-config:       probed by some crates' build.rs
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      swi-prolog-nox \
+      build-essential \
+      curl \
+      ca-certificates \
+      pkg-config \
+      protobuf-compiler && \
+    rm -rf /var/lib/apt/lists/*
+
+# Rust toolchain. Needed to compile ``dorian_native`` — the PyO3 extension
+# that exposes the Rust validator, ExperimentGraph cache-affinity index,
+# and BK-Tree pipeline matcher to Python. Without it, validate_structural
+# silently no-ops and structurally-invalid DAGs reach the executor. Built
+# into the image rather than left as a "dev-only" step because the RL
+# trainer's correctness depends on the native validator being live.
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=1.95.0
+RUN curl --proto '=https' --tlsv1.2 --http1.1 --retry 3 -sSf https://sh.rustup.rs | \
+      sh -s -- -y --no-modify-path --profile minimal --default-toolchain ${RUST_VERSION} && \
+    chmod -R a+rwX ${RUSTUP_HOME} ${CARGO_HOME} && \
+    rustc --version && cargo --version
+
+WORKDIR /app
+
+# Copy everything (source changes are cheap — no multi-stage, no layer export).
+COPY . .
+
+# Ensure data directory exists for uploaded datasets
+RUN mkdir -p /app/data
+
+# Stub out optional submodule source paths so `uv sync` doesn't crash when
+# submodules aren't initialized. uv validates [tool.uv.sources] paths even
+# for extras that aren't being installed. If the submodule IS populated
+# (git submodule update --init), COPY . . already brought the real code and
+# these mkdir/touch lines are harmless no-ops.
+RUN for pair in \
+      "third_party/ap-2.4-guardrails=trust-guardrails" \
+      "third_party/ap-11.3-model-tracing/src/model_tracing=model-tracing"; do \
+    sub="${pair%%=*}"; pkg="${pair##*=}"; \
+    if [ ! -f "$sub/pyproject.toml" ] && [ ! -f "$sub/setup.py" ] && [ ! -f "$sub/setup.cfg" ]; then \
+      mkdir -p "$sub" && \
+      printf '[project]\nname = "%s"\nversion = "0.0.0"\n' "$pkg" > "$sub/pyproject.toml"; \
+    fi; \
+  done
+
+# Default command (overridden by docker-compose per service)
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

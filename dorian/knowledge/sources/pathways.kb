@@ -1,0 +1,147 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Model Families
+# ═══════════════════════════════════════════════════════════════════════
+
+Tree-Based Models is a ModelFamily
+Linear Models is a ModelFamily
+Neural Network Models is a ModelFamily
+SVM Models is a ModelFamily
+Nearest Neighbor Models is a ModelFamily
+Naive Bayes Models is a ModelFamily
+
+# ═══════════════════════════════════════════════════════════════════════
+# Operator → Family membership
+# ═══════════════════════════════════════════════════════════════════════
+
+# Tree-Based
+sklearn.ensemble.RandomForestClassifier belongs to family Tree-Based Models
+sklearn.ensemble.GradientBoostingClassifier belongs to family Tree-Based Models
+sklearn.ensemble.HistGradientBoostingClassifier belongs to family Tree-Based Models
+sklearn.ensemble.AdaBoostClassifier belongs to family Tree-Based Models
+sklearn.ensemble.ExtraTreesClassifier belongs to family Tree-Based Models
+sklearn.tree.DecisionTreeClassifier belongs to family Tree-Based Models
+
+# Linear
+sklearn.linear_model.LogisticRegression belongs to family Linear Models
+sklearn.linear_model.SGDClassifier belongs to family Linear Models
+sklearn.linear_model.PassiveAggressiveClassifier belongs to family Linear Models
+sklearn.discriminant_analysis.LinearDiscriminantAnalysis belongs to family Linear Models
+
+# SVM
+sklearn.svm.SVC belongs to family SVM Models
+sklearn.svm.LinearSVC belongs to family SVM Models
+
+# Nearest Neighbor
+sklearn.neighbors.KNeighborsClassifier belongs to family Nearest Neighbor Models
+
+# Naive Bayes
+sklearn.naive_bayes.GaussianNB belongs to family Naive Bayes Models
+sklearn.naive_bayes.BernoulliNB belongs to family Naive Bayes Models
+sklearn.naive_bayes.MultinomialNB belongs to family Naive Bayes Models
+
+# Neural Network
+sklearn.neural_network.MLPClassifier belongs to family Neural Network Models
+
+# ═══════════════════════════════════════════════════════════════════════
+# DQ Metric → Risk surface
+# "when this metric fails its threshold, this risk is surfaced"
+# ═══════════════════════════════════════════════════════════════════════
+
+ValueCompleteness surfaces risk Missing Value Bias
+RecordCompleteness surfaces risk Missing Value Bias
+LabelCompleteness surfaces risk Label Noise
+LabelDistributionBalance surfaces risk Class Imbalance
+LabelProportionBalance surfaces risk Class Imbalance
+DataRecordConsistency surfaces risk Data Leakage
+SyntacticDataAccuracy surfaces risk Measurement Bias
+SemanticDataAccuracy surfaces risk Measurement Bias
+SampleIndependency surfaces risk Covariate Shift
+SampleTightness surfaces risk Distribution Shift
+CategorySizeDiversity surfaces risk Aggregation Bias
+DataFormatConsistency surfaces risk Measurement Bias
+FeatureRelevance surfaces risk Proxy Features
+RiskOfDatasetInaccuracy surfaces risk Outlier Bias
+
+# ═══════════════════════════════════════════════════════════════════════
+# Risk → Sensitive model families
+# "this risk hurts these model families more than others"
+# ═══════════════════════════════════════════════════════════════════════
+
+Missing Value Bias sensitive family Linear Models
+Missing Value Bias sensitive family SVM Models
+Missing Value Bias sensitive family Nearest Neighbor Models
+Class Imbalance sensitive family Linear Models
+Class Imbalance sensitive family Nearest Neighbor Models
+Covariate Shift sensitive family Linear Models
+Covariate Shift sensitive family Naive Bayes Models
+Distribution Shift sensitive family Neural Network Models
+Distribution Shift sensitive family SVM Models
+Outlier Bias sensitive family Linear Models
+Outlier Bias sensitive family Nearest Neighbor Models
+Outlier Bias sensitive family SVM Models
+
+# ═══════════════════════════════════════════════════════════════════════
+# Cross-View Pathway Rules
+#
+# Each pathway links a DQ metric condition to pipeline-aware actions.
+# At runtime, evaluate_pathways() queries these nodes, checks current
+# metric values against thresholds, filters by pipeline operator
+# families, and emits matching pathways as AI Debugger suggestions.
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Pathway 1: High missingness + NaN-intolerant models ──
+missingness_sensitivity is a Pathway
+missingness_sensitivity when below ValueCompleteness; has threshold 0.90
+missingness_sensitivity and contains family Linear Models
+missingness_sensitivity and contains family SVM Models
+missingness_sensitivity and contains family Nearest Neighbor Models
+missingness_sensitivity suggests preprocessing sklearn.impute.SimpleImputer
+missingness_sensitivity suggests replacement Tree-Based Models
+missingness_sensitivity with description "ValueCompleteness is {metric_value} — {family} cannot handle missing values. Add SimpleImputer before {operator}, or switch to HistGradientBoosting which handles NaN natively."
+
+# ── Pathway 2: Class imbalance + any classifier ──
+imbalance_classifier is a Pathway
+imbalance_classifier when above LabelDistributionBalance; has threshold 0.15
+imbalance_classifier and performs task Classification
+imbalance_classifier suggests preprocessing imblearn.over_sampling.SMOTE
+imbalance_classifier with description "Label distribution divergence is {metric_value}. Add SMOTE before {operator} to balance classes, or set class_weight='balanced'."
+
+# ── Pathway 3: Duplication → data leakage ──
+duplication_leakage is a Pathway
+duplication_leakage when above DataRecordConsistency; has threshold 0.05
+duplication_leakage with description "Dataset has {metric_value_pct}% duplicate records. Remove duplicates before training to prevent data leakage across train/test splits."
+
+# ── Pathway 4: Low feature independence + linear models ──
+multicollinearity_linear is a Pathway
+multicollinearity_linear when below SampleIndependency; has threshold 0.70
+multicollinearity_linear and contains family Linear Models
+multicollinearity_linear suggests preprocessing sklearn.decomposition.PCA
+multicollinearity_linear suggests replacement Tree-Based Models
+multicollinearity_linear with description "Features are highly correlated (independency={metric_value}). Add PCA to decorrelate, or switch to tree-based models which handle multicollinearity."
+
+# ── Pathway 5: Low syntactic accuracy + any model ──
+syntactic_noise is a Pathway
+syntactic_noise when below SyntacticDataAccuracy; has threshold 0.85
+syntactic_noise with description "Syntactic accuracy is {metric_value}. Run syntactic repair (exact match → fuzzy matching → LLM judgment) to fix invalid values before training."
+
+# ── Pathway 6: Tight samples + neural networks ──
+tight_samples_neural is a Pathway
+tight_samples_neural when below SampleTightness; has threshold 0.05
+tight_samples_neural and contains family Neural Network Models
+tight_samples_neural suggests preprocessing sklearn.preprocessing.StandardScaler
+tight_samples_neural with description "Dataset has very tight clustering (tightness={metric_value}). Neural networks need variance for gradient flow — add StandardScaler."
+
+# ── Pathway 7: Outlier risk + sensitive models ──
+outlier_sensitivity is a Pathway
+outlier_sensitivity when above RiskOfDatasetInaccuracy; has threshold 0.10
+outlier_sensitivity and contains family Linear Models
+outlier_sensitivity and contains family Nearest Neighbor Models
+outlier_sensitivity and contains family SVM Models
+outlier_sensitivity suggests preprocessing sklearn.preprocessing.RobustScaler
+outlier_sensitivity with description "Dataset has {metric_value_pct}% outlier risk. {family} is sensitive to outliers — add RobustScaler or apply Winsorization."
+
+# ── Pathway 8: Low label completeness + supervised learning ──
+label_gap is a Pathway
+label_gap when below LabelCompleteness; has threshold 0.85
+label_gap and performs task Classification
+label_gap with description "Label completeness is {metric_value}. Remove unlabeled records or consider semi-supervised learning approaches."

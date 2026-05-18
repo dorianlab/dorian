@@ -1,0 +1,17 @@
+{
+  "description": "Tuple unpacking. ``X, y = make_classification(...)`` and ``X_train, X_test, y_train, y_test = train_test_split(...)``: the assignment rule above wires ``call → pattern_list``; this rule fans the pattern_list into direct ``call → identifier_i`` edges with ``output=i`` so the generic var-rewire propagates each slice to its consumers.",
+  "pattern": {
+    "nodes": {
+      "0": {"language": "python"},
+      "1": {"type": "pattern_list", "language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"}
+    ]
+  },
+  "transformations": [
+    {"type": "unpack_pattern_list",
+     "pattern_list_key": "1",
+     "source_call_key": "0"}
+  ]
+}

@@ -1,0 +1,17 @@
+[package]
+name = "dispatch"
+description = "Multi-runtime dispatch layer with backpressure"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+types  = { workspace = true }
+tokio         = { workspace = true }
+tracing       = { workspace = true }
+thiserror     = { workspace = true }
+anyhow        = { workspace = true }
+serde         = { workspace = true }
+serde_json    = { workspace = true }
+uuid          = { workspace = true }
+redis         = { workspace = true }
+async-trait   = "0.1"

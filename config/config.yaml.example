@@ -1,0 +1,207 @@
+# =============================================================================
+# Dorian --- single source of truth for runtime configuration
+# =============================================================================
+#
+# Copy this file in place and fill in every empty value before
+# starting the stack:
+#
+#   cp config/config.yaml.example config/config.yaml
+#
+# config/config.yaml is gitignored. The backend, the gateway, the
+# frontend, and ``scripts/up.sh`` all read configuration from this
+# one file (or environment variables derived from it on first run).
+# There are no ``.env`` files, no secret overlays, no template
+# fallbacks. If a required value is missing, the relevant service
+# refuses to start and tells you which key is wrong.
+#
+# Generate secrets with ``openssl rand -hex 32``. Use a different
+# value for each named field. NEXT_PUBLIC_HMAC_SECRET and
+# DORIAN_HMAC_SECRET MUST be equal --- the backend, gateway, and
+# frontend bundle all sign / verify against the same key.
+# =============================================================================
+
+type: development
+
+development:
+  # ---------------------------------------------------------------------------
+  # Public-facing service URLs
+  # ---------------------------------------------------------------------------
+  # Browser-visible URLs. The frontend bundle bakes these in at build
+  # time, so they must be reachable from the user's machine, not just
+  # from inside the docker network.
+  urls:
+    frontend: http://localhost:3000
+    backend:  http://localhost:8000
+    gateway:  http://localhost:8080
+    ws:       ws://localhost:8000/ws
+    gateway_ws: ws://localhost:8080/ws
+    cors_origins:
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+
+  # ---------------------------------------------------------------------------
+  # Datastores
+  # ---------------------------------------------------------------------------
+  # When running through ``scripts/up.sh`` / docker compose, ``host``
+  # is the service name (e.g. ``redis``, ``postgres``); the compose
+  # network resolves it. When running the backend directly on the
+  # host (``python -m backend.main``), set both to ``localhost``.
+  redis:
+    host: redis
+    port: 6379
+    user: dorian
+    password: ""             # required --- openssl rand -hex 32
+
+  postgresql:
+    host: postgres
+    port: 5432
+    user: dorian
+    password: ""             # required --- openssl rand -hex 32
+
+  # ---------------------------------------------------------------------------
+  # Authentication and request signing
+  # ---------------------------------------------------------------------------
+  # HMAC: the frontend signs every API call, the backend and gateway
+  # verify. All three must see the same hex-encoded key. Leave empty
+  # to disable HMAC checking entirely (development only).
+  hmac:
+    secret: ""               # required if hmac.enabled is true --- openssl rand -hex 32
+    timestamp_tolerance: 300 # seconds of allowed clock skew
+
+  # Admin endpoint bearer token. State-changing admin routes return
+  # 503 (fail-closed) when this is empty.
+  admin:
+    token: ""                # required for admin endpoints --- openssl rand -hex 32
+    usernames: []            # GitHub usernames (not numeric IDs) granted admin
+
+  # NextAuth signing key + URL. NextAuth refuses to start if the
+  # secret is empty; the URL must match urls.frontend.
+  nextauth:
+    url:    http://localhost:3000
+    secret: ""               # required --- openssl rand -hex 32
+
+  # ---------------------------------------------------------------------------
+  # Caching, concurrency, execution
+  # ---------------------------------------------------------------------------
+  cache:
+    max_bytes: 2147483648    # 2 GiB
+
+  threadpool:
+    max_workers: 5
+
+  dask:
+    cluster:
+      n_workers: 2
+      threads_per_worker: 1
+      memory_limit: 4GB
+      processes: false
+
+  execution:
+    engine:          python         # python | rust | shadow
+    shadow_rust_engine: false       # phase 1.7 --- run Rust engine alongside Dask
+    result_ttl:      86400          # seconds Redis keeps execution results
+    result_dir:      /tmp/dorian_results
+    inline_limit:    4096           # bytes; results smaller than this stay inline
+    holdout_name:    "Automated (Hold-out)"
+
+  # ---------------------------------------------------------------------------
+  # Pipeline transforms, recommendation, generation
+  # ---------------------------------------------------------------------------
+  pipeline:
+    default_loader: pandas.read_csv
+    mime_to_loader:
+      text/csv:                                                                       pandas.read_csv
+      text/plain:                                                                     pandas.read_csv
+      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:              pandas.read_excel
+      application/vnd.ms-excel:                                                       pandas.read_excel
+      application/json:                                                               pandas.read_json
+      application/octet-stream:                                                       pandas.read_parquet
+
+  recommendation:
+    limit:                   10  # max pipelines returned to the frontend
+    retrieval_pool:          40  # candidates fetched before ranking
+    task_fallback_threshold:  5
+
+  generation:
+    enabled:               true
+    inference_mode:        model_free   # model_guided | model_free | blended
+    top_k:                 5
+    num_episodes:          20
+    max_steps_per_episode: 15
+    memory_db:             data/generation_memory.sqlite
+    model_path:            models/generation/
+    idle_poll_interval_s:  5
+    burst_on_new_dataset:  true
+
+  # ---------------------------------------------------------------------------
+  # Filesystem
+  # ---------------------------------------------------------------------------
+  fs:
+    data:   data/
+    backup: backups/
+
+  # ---------------------------------------------------------------------------
+  # Optional integrations --- leave secrets empty to disable
+  # ---------------------------------------------------------------------------
+  # GitHub OAuth for the frontend sign-in screen. When client_id is
+  # empty the GitHub button is hidden.
+  oauth:
+    github:
+      client_id:     ""
+      client_secret: ""
+
+  # MCP server for LLM-assisted knowledge extraction. Leave
+  # llm_api_key empty to disable the MCP path entirely.
+  mcp:
+    server:
+      name:      dorian-mcp
+      transport: stdio    # stdio | http
+      http_port: 8765
+    extraction:
+      llm_backend:          openai           # groq | openai | local
+      llm_model:            gpt-4.1-mini
+      llm_api_key:          ""               # required to enable MCP
+      llm_base_url:         https://api.openai.com/v1
+      llm_temperature:      0.1
+      llm_max_tokens:       4096
+      embedding_model:      all-MiniLM-L6-v2
+      similarity_threshold: 0.45
+      novelty_batch_size:   5
+      triplet_batch_size:   5
+
+  # Slack webhook for error / feedback / session notifications.
+  # Empty webhook_url disables Slack.
+  slack:
+    webhook_url: ""
+    channel:     "#dorian-alerts"
+    notify_on:
+      errors:   true
+      feedback: true
+      sessions: true
+
+  # ---------------------------------------------------------------------------
+  # Rate limiting
+  # ---------------------------------------------------------------------------
+  rate_limit:
+    enabled: true
+    ws:
+      SuggestExtractionRules: 3
+      ExtractPipeline:        10
+      RunPipeline:            5
+      SaveExtractionRules:    20
+      AcceptExtractionRule:   30
+      RejectExtractionRule:   30
+      default:                60
+      window_seconds:         60
+    http:
+      upload:           "10/minute"
+      session_create:   "20/minute"
+      session_read:     "60/minute"
+      session_write:    "30/minute"
+      datasets:         "30/minute"
+      extraction_rules: "60/minute"
+      observability:    "120/minute"
+      contact:          "5/minute"
+      vault:            "20/minute"
+    connection:
+      max_per_minute: 20

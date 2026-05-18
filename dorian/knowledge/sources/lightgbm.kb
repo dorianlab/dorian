@@ -1,0 +1,61 @@
+# LightGBM sklearn API operators — declared as Sklearn Estimator so
+# compound expansion produces the standard ``__init__ → fit → predict``
+# chain. The class-side ``fit`` / ``predict`` signatures match
+# sklearn's: ``fit(self, X, y, sample_weight=None)`` and
+# ``predict(self, X)``. The hyperparameters seeded here are the
+# canonical FLAML knobs — adding more is harmless (the trial-config
+# loader filters by KB-declared params anyway), and the FLAML
+# extractor doesn't depend on the param list to wire them.
+
+lightgbm.sklearn.LGBMClassifier is an Operator
+lightgbm.sklearn.LGBMClassifier is a Sklearn Estimator
+lightgbm.sklearn.LGBMClassifier has parameter n_estimators
+lightgbm.sklearn.LGBMClassifier has parameter learning_rate
+lightgbm.sklearn.LGBMClassifier has parameter num_leaves
+lightgbm.sklearn.LGBMClassifier has parameter min_child_samples
+lightgbm.sklearn.LGBMClassifier has parameter reg_alpha
+lightgbm.sklearn.LGBMClassifier has parameter reg_lambda
+lightgbm.sklearn.LGBMClassifier has parameter colsample_bytree
+lightgbm.sklearn.LGBMClassifier has parameter subsample
+lightgbm.sklearn.LGBMClassifier has parameter subsample_freq
+lightgbm.sklearn.LGBMClassifier has parameter max_depth
+lightgbm.sklearn.LGBMClassifier has parameter min_split_gain
+lightgbm.sklearn.LGBMClassifier has parameter random_state
+lightgbm.sklearn.LGBMClassifier has parameter n_jobs
+lightgbm.sklearn.LGBMClassifier has parameter verbose
+lightgbm.sklearn.LGBMClassifier has parameter boosting_type
+lightgbm.sklearn.LGBMClassifier has parameter objective
+lightgbm.sklearn.LGBMClassifier has parameter class_weight
+
+lightgbm.sklearn.LGBMRegressor is an Operator
+lightgbm.sklearn.LGBMRegressor is a Sklearn Estimator
+lightgbm.sklearn.LGBMRegressor has parameter n_estimators
+lightgbm.sklearn.LGBMRegressor has parameter learning_rate
+lightgbm.sklearn.LGBMRegressor has parameter num_leaves
+lightgbm.sklearn.LGBMRegressor has parameter min_child_samples
+lightgbm.sklearn.LGBMRegressor has parameter reg_alpha
+lightgbm.sklearn.LGBMRegressor has parameter reg_lambda
+lightgbm.sklearn.LGBMRegressor has parameter colsample_bytree
+lightgbm.sklearn.LGBMRegressor has parameter subsample
+lightgbm.sklearn.LGBMRegressor has parameter subsample_freq
+lightgbm.sklearn.LGBMRegressor has parameter max_depth
+lightgbm.sklearn.LGBMRegressor has parameter min_split_gain
+lightgbm.sklearn.LGBMRegressor has parameter random_state
+lightgbm.sklearn.LGBMRegressor has parameter n_jobs
+lightgbm.sklearn.LGBMRegressor has parameter verbose
+lightgbm.sklearn.LGBMRegressor has parameter boosting_type
+lightgbm.sklearn.LGBMRegressor has parameter objective
+
+
+# XGBoost sklearn API
+xgboost.sklearn.XGBClassifier is an Operator
+xgboost.sklearn.XGBClassifier is a Sklearn Estimator
+
+xgboost.sklearn.XGBRegressor is an Operator
+xgboost.sklearn.XGBRegressor is a Sklearn Estimator
+
+xgboost.XGBClassifier is an Operator
+xgboost.XGBClassifier is a Sklearn Estimator
+
+xgboost.XGBRegressor is an Operator
+xgboost.XGBRegressor is a Sklearn Estimator

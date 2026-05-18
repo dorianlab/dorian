@@ -1,0 +1,11 @@
+{
+  "description": "Walk every import_statement / import_from_statement / aliased_import subtree, build an alias→FQN table, rewrite every Operator name that begins with an alias prefix, then drop the import subtrees. Runs after 40_call_with_attribute_to_operator and 41_call_to_operator so Operator names are populated; runs before 50_collapse_assignment so the LHS-binding stage doesn't trip over leftover import nodes. Mirrors the python rule chain that captures import bindings at outer-match time and generates per-import nested rules.",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "module", "language": "python"}
+    }
+  },
+  "transformations": [
+    {"type": "resolve_imports"}
+  ]
+}

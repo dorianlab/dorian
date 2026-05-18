@@ -1,0 +1,17 @@
+[package]
+name = "directors"
+description = "Execution strategies (Dataflow, MessagePassing, MapReduce, Sequential)"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+types    = { workspace = true }
+graph    = { workspace = true }
+cache    = { workspace = true }
+dispatch = { workspace = true }
+tokio           = { workspace = true }
+tracing         = { workspace = true }
+thiserror       = { workspace = true }
+serde_json      = { workspace = true }
+rustc-hash      = { workspace = true }
+async-trait     = "0.1"

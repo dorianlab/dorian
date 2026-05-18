@@ -1,0 +1,148 @@
+# ==========================================================================
+# Guardrail Interface — I/O and attributes
+# ==========================================================================
+
+# I/O ports use ; chaining for UUID uniqueness ("data" is not unique)
+Guardrail has input data; is of type any; has position data
+Guardrail has output data; is of type any; has position data
+Guardrail has attribute passthrough
+
+# validate method params — declared on the method node (reached via
+# interface calls chain: Guardrail calls __init__; calls validate).
+validate has parameter guardrail_type; is of type str
+validate has parameter dataset_risk; is of type str
+
+# ==========================================================================
+# New Risks
+# ==========================================================================
+
+Sexual Content is a Risk
+Sexual Content is threat to Societal Wellbeing
+
+Discrimination is a Risk
+Discrimination is threat to Diversity Non-Discrimination Fairness
+
+openrouter.chat.completion might introduce Sexual Content
+openrouter.chat.completion might introduce Discrimination
+
+# ==========================================================================
+# Guardrail Operators
+# ==========================================================================
+
+# ---- Classifier guardrails (HFClassifierGuardrail — with threshold) ----
+trust_guardrails.guardrails.UnitaryToxicBert is an Operator
+trust_guardrails.guardrails.UnitaryToxicBert is a Guardrail
+trust_guardrails.guardrails.UnitaryToxicBert implements Content Safety Guardrail
+trust_guardrails.guardrails.UnitaryToxicBert checks for Toxicity
+trust_guardrails.guardrails.UnitaryToxicBert checks for Sexual Content
+trust_guardrails.guardrails.UnitaryToxicBert has parameter threshold; is of type float; with default 0.5; with low 0.0; with high 1.0
+trust_guardrails.guardrails.UnitaryToxicBert has parameter token; is of type env
+
+trust_guardrails.guardrails.TwitterRobertaHateGuard is an Operator
+trust_guardrails.guardrails.TwitterRobertaHateGuard is a Guardrail
+trust_guardrails.guardrails.TwitterRobertaHateGuard implements Content Safety Guardrail
+trust_guardrails.guardrails.TwitterRobertaHateGuard checks for Discrimination
+trust_guardrails.guardrails.TwitterRobertaHateGuard has parameter threshold; is of type float; with default 0.5; with low 0.0; with high 1.0
+trust_guardrails.guardrails.TwitterRobertaHateGuard has parameter token; is of type env
+
+trust_guardrails.guardrails.DistilBertNSFWText is an Operator
+trust_guardrails.guardrails.DistilBertNSFWText is a Guardrail
+trust_guardrails.guardrails.DistilBertNSFWText implements Content Safety Guardrail
+trust_guardrails.guardrails.DistilBertNSFWText checks for Sexual Content
+trust_guardrails.guardrails.DistilBertNSFWText has parameter threshold; is of type float; with default 0.8; with low 0.0; with high 1.0
+trust_guardrails.guardrails.DistilBertNSFWText has parameter token; is of type env
+
+trust_guardrails.guardrails.JailbreakClassifier is an Operator
+trust_guardrails.guardrails.JailbreakClassifier is a Guardrail
+trust_guardrails.guardrails.JailbreakClassifier implements Content Safety Guardrail
+trust_guardrails.guardrails.JailbreakClassifier checks for Jailbreaking
+trust_guardrails.guardrails.JailbreakClassifier has parameter threshold; is of type float; with default 0.5; with low 0.0; with high 1.0
+trust_guardrails.guardrails.JailbreakClassifier has parameter token; is of type env
+
+# ---- LLM guardrails (HFLLMGuardrail — no threshold, only device + token) ----
+trust_guardrails.guardrails.LlamaGuard is an Operator
+trust_guardrails.guardrails.LlamaGuard is a Guardrail
+trust_guardrails.guardrails.LlamaGuard implements Content Safety Guardrail
+trust_guardrails.guardrails.LlamaGuard checks for Toxicity
+trust_guardrails.guardrails.LlamaGuard checks for Sexual Content
+trust_guardrails.guardrails.LlamaGuard has parameter token; is of type env
+
+trust_guardrails.guardrails.WildGuard is an Operator
+trust_guardrails.guardrails.WildGuard is a Guardrail
+trust_guardrails.guardrails.WildGuard implements Content Safety Guardrail
+trust_guardrails.guardrails.WildGuard checks for Toxicity
+trust_guardrails.guardrails.WildGuard checks for Sexual Content
+trust_guardrails.guardrails.WildGuard checks for Discrimination
+trust_guardrails.guardrails.WildGuard checks for Data Exfiltration
+trust_guardrails.guardrails.WildGuard has parameter token; is of type env
+
+# ==========================================================================
+# Concrete Guardrail Mitigations
+# ==========================================================================
+
+Jailbreak Input Guard is a Mitigation
+Jailbreak Input Guard with description "Scan user prompts for jailbreak attempts using JailbreakClassifier"
+Jailbreak Input Guard might mitigate Jailbreaking
+Jailbreak Input Guard might mitigate Prompt Injection
+Jailbreak Input Guard applies to LLM Chat Completion
+Jailbreak Input Guard has input messages
+Jailbreak Input Guard has parameter guardrail_type
+Jailbreak Input Guard has parameter dataset_risk
+
+Toxicity Output Guard is a Mitigation
+Toxicity Output Guard with description "Detect toxic content in LLM responses using UnitaryToxicBert"
+Toxicity Output Guard might mitigate Toxicity
+Toxicity Output Guard applies to LLM Chat Completion
+Toxicity Output Guard has parameter guardrail_type
+Toxicity Output Guard has parameter dataset_risk
+
+Hate Speech Output Guard is a Mitigation
+Hate Speech Output Guard with description "Detect hate speech in LLM responses using TwitterRobertaHateGuard"
+Hate Speech Output Guard might mitigate Discrimination
+Hate Speech Output Guard applies to LLM Chat Completion
+Hate Speech Output Guard has parameter guardrail_type
+Hate Speech Output Guard has parameter dataset_risk
+
+NSFW Content Guard is a Mitigation
+NSFW Content Guard with description "Detect NSFW text content using DistilBertNSFWText"
+NSFW Content Guard might mitigate Sexual Content
+NSFW Content Guard applies to LLM Chat Completion
+NSFW Content Guard has parameter guardrail_type
+NSFW Content Guard has parameter dataset_risk
+
+PII Output Guard is a Mitigation
+PII Output Guard with description "Detect PII and data exfiltration using WildGuard"
+PII Output Guard might mitigate Data Exfiltration
+PII Output Guard applies to LLM Chat Completion
+PII Output Guard has parameter guardrail_type
+PII Output Guard has parameter dataset_risk
+
+Discrimination Guard is a Mitigation
+Discrimination Guard with description "Detect discriminatory content using WildGuard"
+Discrimination Guard might mitigate Discrimination
+Discrimination Guard applies to LLM Chat Completion
+Discrimination Guard has parameter guardrail_type
+Discrimination Guard has parameter dataset_risk
+
+Comprehensive LLM Guard is a Mitigation
+Comprehensive LLM Guard with description "Multi-category safety guard using LlamaGuard (8B)"
+Comprehensive LLM Guard might mitigate Toxicity
+Comprehensive LLM Guard might mitigate Sexual Content
+Comprehensive LLM Guard might mitigate Jailbreaking
+Comprehensive LLM Guard applies to LLM Chat Completion
+Comprehensive LLM Guard has parameter guardrail_type
+Comprehensive LLM Guard has parameter dataset_risk
+
+# Shared parameter types (declared once)
+guardrail_type is of type str
+dataset_risk is of type str
+
+# ==========================================================================
+# Check stubs for new risks
+# ==========================================================================
+
+sexual_content_scan is a Check
+sexual_content_scan checks for Sexual Content
+
+discrimination_scan is a Check
+discrimination_scan checks for Discrimination

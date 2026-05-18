@@ -1,0 +1,18 @@
+{
+  "description": "Promote ``keyword_argument`` AST nodes into Parameter(name=..., dtype=..., value=...). The keyword's identifier becomes the param name; the assigned value's text becomes the param value and its tree-sitter type becomes the dtype (integer/float/string/...).",
+  "pattern": {
+    "nodes": {
+      "0": {"type": "keyword_argument", "language": "python"},
+      "1": {"type": "identifier", "language": "python"},
+      "2": {"language": "python"}
+    },
+    "edges": [
+      {"source": "0", "destination": "1"},
+      {"source": "0", "destination": "2"}
+    ]
+  },
+  "transformations": [
+    {"type": "to_parameter", "target": "0", "kw_key": "1", "value_key": "2"},
+    {"type": "delete", "nodes": ["1", "2"]}
+  ]
+}
